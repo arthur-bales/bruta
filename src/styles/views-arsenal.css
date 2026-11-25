@@ -1,0 +1,706 @@
+/* ============================================================================
+   BRUTE LEGENDS — Arsenal & Extra Views ("Arène Parchemin" My Brute style)
+   Covers: InventoryView, ShopView, SkillsView, MissionsView, SettingsView
+   ============================================================================ */
+
+/* ---------------------------------------------------------------------------
+   Shared Arsenal Helpers (pills, stat tags, icon frames, responsive grids)
+   --------------------------------------------------------------------------- */
+.arsenal-view {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.arsenal-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.arsenal-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 5px 12px;
+  border: 2px solid #c9a77a;
+  border-radius: var(--radius-pill);
+  background: #fff9e6;
+  color: var(--ink-body);
+  font-family: var(--font-title);
+  font-size: 0.86rem;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  transition: transform 0.08s ease, background 0.12s ease, border-color 0.12s ease;
+}
+
+.arsenal-pill:hover {
+  border-color: #8b5a35;
+  background: #fff3d1;
+}
+
+.arsenal-pill--active {
+  border-color: #6b3f22;
+  background: linear-gradient(180deg, #ffb347 0%, #f08a1c 100%);
+  color: #fffaf0;
+  text-shadow: 0 1px 0 rgba(107, 50, 10, 0.6);
+  box-shadow: 0 2px 0 #6b3f22;
+}
+
+.arsenal-pill--sub {
+  min-height: 32px;
+  padding: 3px 10px;
+  font-size: 0.78rem;
+}
+
+.arsenal-pill--sub.arsenal-pill--active {
+  background: #8b4a2b;
+  color: #fff3dc;
+  text-shadow: none;
+}
+
+.arsenal-stat-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.arsenal-stat-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1.5px solid #c9a77a;
+  background: #fffdf3;
+  color: var(--ink-strong);
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.arsenal-stat-tag--effect {
+  border-color: #d9850b;
+  background: #fff2cc;
+  color: #8a4208;
+}
+
+.arsenal-stat-tag--olive {
+  border-color: #6d731a;
+  background: #f2f4c4;
+  color: #3f450c;
+}
+
+.arsenal-icon-frame {
+  width: 58px;
+  height: 58px;
+  border-radius: 11px;
+  border: 2.5px solid #6b3f22;
+  background: radial-gradient(circle at 50% 42%, #ffffff 0%, #fdf0cc 100%);
+  box-shadow: 0 2px 0 #6b3f22;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  padding: 4px;
+  overflow: hidden;
+}
+
+.arsenal-icon-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 2px rgba(74, 42, 22, 0.25));
+}
+
+.arsenal-empty-box {
+  text-align: center;
+  padding: 24px 14px;
+  border-radius: 12px;
+  background: var(--bg-panel-sunk);
+  border: 2px dashed #b99362;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ---------------------------------------------------------------------------
+   1. InventoryView ("Arsenal & Inventaire")
+   --------------------------------------------------------------------------- */
+.arsenal-top-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .arsenal-top-grid {
+    grid-template-columns: 1.35fr 1fr;
+  }
+}
+
+/* 6-slot Wooden Plank Equipment Board */
+.arsenal-wood-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  min-height: 0;
+  padding: 14px;
+}
+
+@media (max-width: 400px) {
+  .arsenal-wood-board {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px;
+  }
+}
+
+.wood-slot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 106px;
+  padding: 8px 6px;
+  border-radius: 10px;
+  border: 2.5px solid rgba(58, 28, 12, 0.78);
+  background: rgba(52, 26, 12, 0.42);
+  box-shadow: inset 0 2px 6px rgba(25, 10, 0, 0.35), 0 2px 0 rgba(255, 224, 178, 0.14);
+  color: #fff3dc;
+  text-align: center;
+  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.wood-slot--filled {
+  background: radial-gradient(circle at 50% 42%, rgba(255, 248, 224, 0.24) 0%, rgba(58, 28, 12, 0.56) 100%);
+  cursor: pointer;
+}
+
+.wood-slot--filled:hover {
+  transform: translateY(-2px);
+}
+
+.wood-slot--selected {
+  box-shadow: 0 0 0 3px #f2c21b, 0 4px 10px rgba(240, 138, 28, 0.45);
+  background: radial-gradient(circle at 50% 42%, rgba(255, 236, 170, 0.38) 0%, rgba(74, 34, 12, 0.68) 100%);
+}
+
+.wood-slot--empty {
+  border-style: dashed;
+  border-color: rgba(255, 228, 184, 0.38);
+  background: rgba(42, 20, 8, 0.28);
+  cursor: default;
+}
+
+.wood-slot__img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 3px rgba(30, 12, 0, 0.65));
+  transition: transform 0.15s ease;
+}
+
+.wood-slot--filled:hover .wood-slot__img {
+  transform: rotate(-5deg) scale(1.07);
+}
+
+.wood-slot__label {
+  font-family: var(--font-title);
+  font-size: 0.74rem;
+  color: #ffe9c2;
+  text-shadow: 0 1px 0 rgba(35, 14, 0, 0.8);
+  line-height: 1.1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wood-slot__empty-icon {
+  font-size: 1.35rem;
+  opacity: 0.55;
+}
+
+.wood-slot__forge {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: #e2700c;
+  border: 1.5px solid #4a2410;
+  color: #fffaf0;
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  line-height: 1.2;
+}
+
+.wood-slot__rarity-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid #fff8e6;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+/* Selected equipped slot inspector panel */
+.equipped-inspector {
+  margin-top: 12px;
+  padding: 12px;
+  border: 2.5px solid #8b5a35;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fffdf4 0%, #f7e9c4 100%);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.equipped-inspector__top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.equipped-inspector__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Live Hero Showcase inside InventoryView */
+.arsenal-stage {
+  border: 3px solid #6b3f22;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #f4e2b8 0%, #dfc088 100%);
+  min-height: 220px;
+}
+
+/* Backpack Items Grid */
+.arsenal-items-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+@media (min-width: 640px) {
+  .arsenal-items-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .arsenal-items-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.parchment-item-card {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 12px;
+  border: 2.5px solid #6b3f22;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fffdf4 0%, #f6e7bf 100%);
+  box-shadow: var(--shadow-comic-sm), inset 0 2px 0 rgba(255, 255, 255, 0.7);
+  position: relative;
+}
+
+.parchment-item-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.parchment-item-card__ident {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.parchment-item-card__title {
+  font-family: var(--font-title);
+  font-size: 0.98rem;
+  color: var(--ink-strong);
+  line-height: 1.15;
+}
+
+.parchment-item-card__meta {
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+}
+
+.parchment-item-card__desc {
+  margin: 0;
+  font-size: 0.79rem;
+  font-weight: 700;
+  color: var(--ink-body);
+  line-height: 1.3;
+}
+
+.parchment-item-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 2px;
+}
+
+.diff-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1.5px solid #6b3f22;
+  font-family: var(--font-title);
+  font-size: 0.72rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.diff-pill--up {
+  background: #e2f5c8;
+  color: #366614;
+  border-color: #417220;
+}
+
+.diff-pill--down {
+  background: #fde2dc;
+  color: #9e2a1a;
+  border-color: #b83a28;
+}
+
+.diff-pill--same {
+  background: #f5ebd4;
+  color: var(--ink-muted);
+  border-color: #b89a6e;
+}
+
+/* ---------------------------------------------------------------------------
+   2. ShopView ("Boutique & Coffres")
+   --------------------------------------------------------------------------- */
+.shop-chests-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 720px) {
+  .shop-chests-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.shop-chest-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 3px solid #6b3f22;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fffdf4 0%, #f5e3b6 100%);
+  box-shadow: var(--shadow-comic-sm), inset 0 2px 0 rgba(255, 255, 255, 0.75);
+  text-align: center;
+}
+
+.shop-chest-card__stage {
+  height: 112px;
+  border-radius: 10px;
+  border: 2.5px solid #4a2410;
+  background:
+    radial-gradient(circle at 50% 55%, rgba(255, 240, 184, 0.45) 0%, rgba(74, 34, 12, 0.35) 75%),
+    url('/assets/ui/wood_board.jpg') center / cover,
+    #8a4b2a;
+  box-shadow: inset 0 -4px 8px rgba(35, 14, 0, 0.4);
+  display: grid;
+  place-items: center;
+  padding: 6px;
+}
+
+.shop-chest-card__stage img {
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 5px rgba(30, 12, 0, 0.55));
+  transition: transform 0.16s ease;
+}
+
+.shop-chest-card:hover .shop-chest-card__stage img {
+  transform: scale(1.06) translateY(-2px);
+}
+
+.shop-chest-card__name {
+  font-family: var(--font-display);
+  font-size: 1.08rem;
+  letter-spacing: 0.03em;
+  color: var(--ink-strong);
+  text-transform: uppercase;
+  line-height: 1.15;
+}
+
+.shop-chest-card__desc {
+  margin: 0;
+  font-size: 0.81rem;
+  font-weight: 700;
+  color: var(--ink-body);
+  line-height: 1.3;
+}
+
+.shop-stock-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+@media (min-width: 860px) {
+  .shop-stock-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.shop-stock-row {
+  align-items: center;
+}
+
+.shop-stock-row__right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   3. SkillsView ("Compétences de Combat" — IMG_4201 style)
+   --------------------------------------------------------------------------- */
+.skills-mosaic {
+  grid-template-columns: repeat(auto-fill, minmax(54px, 1fr));
+  gap: 8px;
+}
+
+@media (min-width: 768px) {
+  .skills-mosaic {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 10px;
+  }
+}
+
+.skill-tile--selected {
+  outline: 3px solid #f08a1c;
+  outline-offset: 2px;
+  transform: translateY(-2px);
+}
+
+.skill-tile__equipped-dot {
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #f08a1c;
+  border: 2px solid #4a2a16;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.skills-loadout-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+@media (min-width: 680px) {
+  .skills-loadout-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.skills-loadout-slot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 54px;
+  padding: 8px 10px;
+  border: 2px solid #6b3f22;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fffdf4 0%, #f6e7bf 100%);
+  box-shadow: 0 2px 0 #6b3f22;
+}
+
+.skills-loadout-slot--empty {
+  justify-content: center;
+  border-style: dashed;
+  border-color: #b99362;
+  background: rgba(255, 250, 234, 0.55);
+  box-shadow: none;
+  color: var(--ink-muted);
+  font-family: var(--font-title);
+  font-size: 0.86rem;
+}
+
+.skills-rows-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+@media (min-width: 960px) {
+  .skills-rows-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.skill-row-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   4. MissionsView ("Missions & Quotidien")
+   --------------------------------------------------------------------------- */
+.missions-daily-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+@media (min-width: 560px) {
+  .missions-daily-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .missions-daily-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+}
+
+.daily-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 5px;
+  padding: 10px 8px;
+  border: 2.5px solid #c9a77a;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fffdf5 0%, #f6e8c2 100%);
+  box-shadow: 0 3px 0 #c9a77a;
+  text-align: center;
+  position: relative;
+}
+
+.daily-tile--claimed {
+  border-color: #6d7a1e;
+  background: linear-gradient(180deg, #f7f8d4 0%, #e4e9a6 100%);
+  box-shadow: 0 3px 0 #5b6616;
+  opacity: 0.9;
+}
+
+.daily-tile--today {
+  border: 3px solid #e2700c;
+  background: linear-gradient(180deg, #fff5dc 0%, #ffe0a8 100%);
+  box-shadow: 0 4px 0 #c4600a, 0 0 0 3px rgba(240, 138, 28, 0.28);
+}
+
+.daily-tile__icon {
+  font-size: 1.65rem;
+  line-height: 1.1;
+}
+
+.daily-tile__title {
+  font-family: var(--font-title);
+  font-size: 0.82rem;
+  color: var(--ink-strong);
+  line-height: 1.15;
+}
+
+.daily-tile__rewards {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--ink-body);
+  line-height: 1.25;
+}
+
+.missions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mission-row-progress {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mission-row-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   5. SettingsView ("Options & Sauvegarde")
+   --------------------------------------------------------------------------- */
+.settings-top-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .settings-top-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.settings-volume-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.settings-slider {
+  flex: 1;
+  min-width: 110px;
+  accent-color: var(--accent-flame);
+  cursor: pointer;
+}
+
+.settings-danger-card {
+  border-color: #b83a28;
+  background: linear-gradient(180deg, #fff5f2 0%, #fde4dc 100%);
+  box-shadow: 0 4px 0 #8a281a;
+}
+
+.settings-danger-card .mb-section-title {
+  color: #9e2416;
+}

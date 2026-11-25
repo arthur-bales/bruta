@@ -7,6 +7,7 @@ import {
   MISSIONS_CATALOG,
   getMissionProgress,
 } from '@shared/missionsCatalog';
+import { MbRow, SectionCard } from '@/components/ui/BruteUI';
 import { useGame } from '@/state/GameContext';
 import { soundEngine } from '@/engine/audio/soundEffects';
 
@@ -74,208 +75,179 @@ export const MissionsView: React.FC = () => {
     }
   };
 
-  const renderMissionList = (list: typeof MISSIONS_CATALOG) => (
-    <div className="grid-cards">
-      {list.map((mission) => {
-        const prog = getMissionProgress(fighter, mission);
-        return (
-          <div
-            key={mission.id}
-            className="item-card"
-            style={{
-              background: prog.claimed
-                ? '#f3f4f6'
-                : prog.completed
-                  ? '#fff9db'
-                  : '#ffffff',
-              borderColor: prog.completed && !prog.claimed ? '#d97706' : 'var(--ink-strong)',
-              opacity: prog.claimed ? 0.72 : 1,
-            }}
-          >
-            <div className="item-card__header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div
-                  style={{
-                    width: 42,
-                    height: 42,
-                    borderRadius: 12,
-                    background: 'var(--bg-parchment)',
-                    border: '2px solid var(--ink-strong)',
-                    display: 'grid',
-                    placeItems: 'center',
-                    fontSize: '1.35rem',
-                    flexShrink: 0,
-                  }}
-                >
-                  {mission.icon}
-                </div>
-                <div>
-                  <div className="item-card__name">{mission.title}</div>
-                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--ink-muted)' }}>
-                    {mission.description}
+  const renderMissionList = (title: string, list: typeof MISSIONS_CATALOG) => {
+    const claimedCount = list.filter((m) => getMissionProgress(fighter, m).claimed).length;
+
+    return (
+      <SectionCard
+        title={title}
+        right={
+          <span className="mb-tag mb-tag--olive">
+            {claimedCount}/{list.length} terminées
+          </span>
+        }
+      >
+        <div className="missions-list">
+          {list.map((mission) => {
+            const prog = getMissionProgress(fighter, mission);
+            const canClaim = prog.completed && !prog.claimed;
+
+            return (
+              <MbRow
+                key={mission.id}
+                state={prog.claimed ? 'locked' : canClaim ? 'active' : 'default'}
+                icon={<span>{mission.icon}</span>}
+                title={mission.title}
+                level={`${prog.percent}%`}
+                desc={
+                  <div className="mission-row-progress">
+                    <span>{mission.description}</span>
+                    <div className="meter" style={{ height: 15 }}>
+                      <div
+                        className={`meter__fill ${prog.completed ? 'meter__fill--hp' : 'meter__fill--xp'}`}
+                        style={{ width: `${prog.percent}%` }}
+                      />
+                      <span className="meter__label">
+                        {Math.min(prog.current, prog.target).toLocaleString('fr-FR')} /{' '}
+                        {prog.target.toLocaleString('fr-FR')}
+                      </span>
+                    </div>
+                    <div className="arsenal-stat-tags">
+                      <span className="arsenal-stat-tag">🪙 +{mission.rewardGold} Or</span>
+                      <span className="arsenal-stat-tag">💎 +{mission.rewardGems}</span>
+                      <span className="arsenal-stat-tag">⭐ +{mission.rewardXp} XP</span>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 800 }}>
-                <span>Progression</span>
-                <span>
-                  {Math.min(prog.current, prog.target).toLocaleString('fr-FR')} /{' '}
-                  {prog.target.toLocaleString('fr-FR')} ({prog.percent}%)
-                </span>
-              </div>
-              <div className="meter" style={{ height: 12 }}>
-                <div
-                  className={`meter__fill ${prog.completed ? 'meter__fill--hp-ally' : 'meter__fill--xp'}`}
-                  style={{ width: `${prog.percent}%` }}
-                />
-              </div>
-            </div>
-
-            <div className="item-card__stats">
-              <span className="stat-tag">🪙 +{mission.rewardGold} Or</span>
-              <span className="stat-tag">💎 +{mission.rewardGems}</span>
-              <span className="stat-tag">⭐ +{mission.rewardXp} XP</span>
-            </div>
-
-            <button
-              type="button"
-              className={`btn btn--sm ${prog.completed && !prog.claimed ? 'btn--jade' : ''}`}
-              disabled={!prog.completed || prog.claimed || busyId === mission.id}
-              onClick={() => void handleClaimMission(mission.id)}
-              style={{ marginTop: 'auto', width: '100%' }}
-            >
-              {prog.claimed ? (
-                <>
-                  <CheckCircle2 size={15} />
-                  Réclamée ✓
-                </>
-              ) : prog.completed ? (
-                <>
-                  <Gift size={15} />
-                  {busyId === mission.id ? 'Réclamation…' : 'Réclamer la récompense !'}
-                </>
-              ) : (
-                'En cours…'
-              )}
-            </button>
-          </div>
-        );
-      })}
-    </div>
-  );
+                }
+                right={
+                  <div className="mission-row-right">
+                    {prog.claimed ? (
+                      <span className="mb-tag mb-tag--olive">
+                        <CheckCircle2 size={12} style={{ marginRight: 4 }} />
+                        REÇU
+                      </span>
+                    ) : canClaim ? (
+                      <button
+                        type="button"
+                        className="btn btn--primary btn--sm"
+                        disabled={busyId === mission.id}
+                        onClick={() => void handleClaimMission(mission.id)}
+                      >
+                        <Gift size={14} />
+                        {busyId === mission.id ? '…' : 'RÉCLAMER'}
+                      </button>
+                    ) : (
+                      <span className="mb-tag">En cours</span>
+                    )}
+                  </div>
+                }
+              />
+            );
+          })}
+        </div>
+      </SectionCard>
+    );
+  };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div className="view-header">
-        <div>
-          <h1 className="view-title">
-            <Gift size={26} color="var(--accent-flame)" />
-            Missions, Succès & Bonus Quotidien
-          </h1>
-          <p className="view-subtitle">
-            Connecte-toi chaque jour et accomplis des objectifs pour récolter de l’or, des gemmes et des coffres rares !
-          </p>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="tabs-bar">
+    <div className="arsenal-view">
+      {/* Parchment Tab Pills */}
+      <div className="arsenal-pills">
         <button
           type="button"
-          className={`tab-btn ${tab === 'daily' ? 'tab-btn--active' : ''}`}
+          className={`arsenal-pill ${tab === 'daily' ? 'arsenal-pill--active' : ''}`}
           onClick={() => {
             soundEngine.play('click');
             setTab('daily');
           }}
         >
-          <Calendar size={15} style={{ verticalAlign: 'middle', marginRight: 6 }} />
-          Quotidien {canClaimDaily ? '(1!)' : ''}
+          <Calendar size={15} />
+          Quotidien
+          {canClaimDaily && <span className="mb-tag mb-tag--orange">1!</span>}
         </button>
 
         <button
           type="button"
-          className={`tab-btn ${tab === 'missions' ? 'tab-btn--active' : ''}`}
+          className={`arsenal-pill ${tab === 'missions' ? 'arsenal-pill--active' : ''}`}
           onClick={() => {
             soundEngine.play('click');
             setTab('missions');
           }}
         >
-          <Target size={15} style={{ verticalAlign: 'middle', marginRight: 6 }} />
-          Missions {readyMissionsCount > 0 ? `(${readyMissionsCount}!)` : ''}
+          <Target size={15} />
+          Missions
+          {readyMissionsCount > 0 && (
+            <span className="mb-tag mb-tag--orange">{readyMissionsCount}!</span>
+          )}
         </button>
 
         <button
           type="button"
-          className={`tab-btn ${tab === 'achievements' ? 'tab-btn--active' : ''}`}
+          className={`arsenal-pill ${tab === 'achievements' ? 'arsenal-pill--active' : ''}`}
           onClick={() => {
             soundEngine.play('click');
             setTab('achievements');
           }}
         >
-          <Award size={15} style={{ verticalAlign: 'middle', marginRight: 6 }} />
-          Succès {readyAchievementsCount > 0 ? `(${readyAchievementsCount}!)` : ''}
+          <Award size={15} />
+          Succès
+          {readyAchievementsCount > 0 && (
+            <span className="mb-tag mb-tag--orange">{readyAchievementsCount}!</span>
+          )}
         </button>
       </div>
 
       {/* Tab 1: 7-Day Daily Streak Calendar */}
       {tab === 'daily' && (
-        <div className="comic-card card-pad" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 10,
-            }}
-          >
-            <div>
-              <h2 style={{ fontSize: '1.2rem' }}>Calendrier de 7 Jours</h2>
-              <p className="view-subtitle">
-                Série actuelle : <strong>{fighter.dailyStreak} jour(s)</strong> • Un coffre garanti au Jour 3 et au Jour 7 !
-              </p>
-            </div>
-            <button
-              type="button"
-              className={`btn ${canClaimDaily ? 'btn--gold btn--lg' : ''}`}
-              disabled={!canClaimDaily || busyId === 'daily'}
-              onClick={() => void handleClaimDaily()}
-            >
-              <Gift size={18} />
-              {canClaimDaily
-                ? busyId === 'daily'
-                  ? 'Réclamation…'
-                  : `Réclamer le Jour ${nextClaimDay} !`
-                : 'Déjà réclamé aujourd’hui ✓'}
-            </button>
-          </div>
+        <SectionCard
+          title="Calendrier de 7 Jours"
+          right={
+            <>
+              <span className="mb-tag">Série : {fighter.dailyStreak} j</span>
+              {canClaimDaily ? (
+                <button
+                  type="button"
+                  className="btn btn--primary btn--sm"
+                  disabled={busyId === 'daily'}
+                  onClick={() => void handleClaimDaily()}
+                >
+                  <Gift size={15} />
+                  {busyId === 'daily' ? 'Réclamation…' : `RÉCLAMER JOUR ${nextClaimDay}`}
+                </button>
+              ) : (
+                <span className="mb-tag mb-tag--olive">REÇU AUJOURD’HUI ✓</span>
+              )}
+            </>
+          }
+        >
+          <p className="mb-flavor" style={{ margin: '0 0 12px', fontSize: '0.9rem' }}>
+            Connecte-toi chaque jour pour grimper ta série — un coffre garanti au Jour 3 et au Jour 7 !
+          </p>
 
           {dailyBonusItem && (
             <div
-              className="animate-pop"
+              className="equipped-inspector animate-pop"
               style={{
-                padding: '12px 14px',
-                borderRadius: 14,
-                border: `2.5px solid ${RARITY_META[dailyBonusItem.rarity].border}`,
-                background: RARITY_META[dailyBonusItem.rarity].bg,
-                display: 'flex',
+                marginTop: 0,
+                marginBottom: 12,
+                borderColor: RARITY_META[dailyBonusItem.rarity].border,
+                flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                gap: 10,
                 flexWrap: 'wrap',
               }}
             >
               <div>
-                <div style={{ fontSize: '0.76rem', fontWeight: 900, color: RARITY_META[dailyBonusItem.rarity].color }}>
-                  <Sparkles size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+                <div
+                  className="parchment-item-card__meta"
+                  style={{ color: RARITY_META[dailyBonusItem.rarity].color }}
+                >
+                  <Sparkles size={12} style={{ verticalAlign: 'middle', marginRight: 4 }} />
                   COFFRE QUOTIDIEN OUVERT ({RARITY_META[dailyBonusItem.rarity].label})
                 </div>
-                <strong style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem' }}>
+                <div className="parchment-item-card__title">
                   {SLOT_LABELS[dailyBonusItem.slot].icon} {dailyBonusItem.name} ajouté à ton sac !
-                </strong>
+                </div>
               </div>
               <button
                 type="button"
@@ -287,7 +259,7 @@ export const MissionsView: React.FC = () => {
             </div>
           )}
 
-          <div className="daily-grid">
+          <div className="missions-daily-grid">
             {DAILY_REWARDS_CATALOG.map((reward) => {
               const isClaimed =
                 completedDaysInCycle >= reward.day ||
@@ -297,43 +269,36 @@ export const MissionsView: React.FC = () => {
               return (
                 <div
                   key={reward.day}
-                  className={`daily-day ${isClaimed ? 'daily-day--claimed' : ''} ${
-                    isToday ? 'daily-day--today' : ''
+                  className={`daily-tile ${isClaimed ? 'daily-tile--claimed' : ''} ${
+                    isToday ? 'daily-tile--today' : ''
                   }`}
                 >
                   <span
-                    className="badge"
-                    style={{
-                      background: isToday ? '#ef5b36' : isClaimed ? '#22c55e' : '#f5ebd4',
-                      color: isToday || isClaimed ? '#ffffff' : 'var(--ink-strong)',
-                    }}
+                    className={`mb-tag ${
+                      isToday ? 'mb-tag--orange' : isClaimed ? 'mb-tag--olive' : ''
+                    }`}
                   >
                     Jour {reward.day}
                   </span>
-                  <div style={{ fontSize: '1.85rem', lineHeight: 1.1 }}>{reward.icon}</div>
-                  <strong style={{ fontFamily: 'var(--font-display)', fontSize: '0.86rem' }}>
-                    {reward.title}
-                  </strong>
-                  <div style={{ fontSize: '0.76rem', fontWeight: 800, color: 'var(--ink-body)' }}>
-                    🪙 {reward.gold} • 💎 {reward.gems}
+                  <div className="daily-tile__icon" aria-hidden="true">
+                    {reward.icon}
                   </div>
-                  <div style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--ink-muted)' }}>
+                  <div className="daily-tile__title">{reward.title}</div>
+                  <div className="daily-tile__rewards">
+                    🪙 {reward.gold} • 💎 {reward.gems}
+                    <br />
                     ⭐ +{reward.xp} XP
                   </div>
                   {reward.chestRarity && (
                     <span
-                      className="badge"
-                      style={{
-                        background: RARITY_META[reward.chestRarity].bg,
-                        color: RARITY_META[reward.chestRarity].color,
-                        fontSize: '0.68rem',
-                      }}
+                      className="arsenal-stat-tag arsenal-stat-tag--effect"
+                      style={{ fontSize: '0.66rem' }}
                     >
                       Coffre {RARITY_META[reward.chestRarity].label}
                     </span>
                   )}
                   {isClaimed && (
-                    <span style={{ fontSize: '0.76rem', fontWeight: 900, color: '#15803d' }}>
+                    <span className="mb-tag mb-tag--olive" style={{ fontSize: '0.68rem' }}>
                       ✓ Reçu
                     </span>
                   )}
@@ -341,14 +306,14 @@ export const MissionsView: React.FC = () => {
               );
             })}
           </div>
-        </div>
+        </SectionCard>
       )}
 
       {/* Tab 2: Missions */}
-      {tab === 'missions' && renderMissionList(missions)}
+      {tab === 'missions' && renderMissionList('Missions de l’Arène', missions)}
 
       {/* Tab 3: Achievements */}
-      {tab === 'achievements' && renderMissionList(achievements)}
+      {tab === 'achievements' && renderMissionList('Succès & Exploits', achievements)}
     </div>
   );
 };

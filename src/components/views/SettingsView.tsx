@@ -1,6 +1,5 @@
 import React, { useRef, useState } from 'react';
 import {
-  Settings,
   Volume2,
   VolumeX,
   Download,
@@ -10,8 +9,11 @@ import {
   Database,
   FastForward,
   AlertTriangle,
+  Sparkles,
+  UserCheck,
 } from 'lucide-react';
 import type { FighterProfile } from '@shared/types';
+import { MbRow, SectionCard } from '@/components/ui/BruteUI';
 import { useGame } from '@/state/GameContext';
 import { soundEngine } from '@/engine/audio/soundEffects';
 
@@ -126,209 +128,182 @@ export const SettingsView: React.FC = () => {
     }
   };
 
+  const volumePercent = Math.round(fighter.settings.soundVolume * 100);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div className="view-header">
-        <div>
-          <h1 className="view-title">
-            <Settings size={26} color="var(--accent-flame)" />
-            Paramètres & Sauvegardes
-          </h1>
-          <p className="view-subtitle">
-            Règle l’audio, la vitesse d’arène, ton compte cloud et tes exports de sauvegarde JSON.
-          </p>
-        </div>
-      </div>
-
-      <div className="grid-2-equal">
+    <div className="arsenal-view">
+      <div className="settings-top-grid">
         {/* Audio & Gameplay Preferences */}
-        <div className="comic-card card-pad" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <h2 style={{ fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Volume2 size={20} color="var(--accent-sky)" />
-            Audio & Préférences de Jeu
-          </h2>
+        <SectionCard title="Audio & Préférences">
+          <div className="mb-stack mb-stack--sm">
+            <MbRow
+              icon={
+                fighter.settings.soundEnabled ? (
+                  <Volume2 size={22} color="var(--ink-strong)" />
+                ) : (
+                  <VolumeX size={22} color="var(--ink-muted)" />
+                )
+              }
+              title="Effets sonores"
+              desc="Frappes, critiques, pièces et fanfares"
+              right={
+                <button
+                  type="button"
+                  className={`btn btn--sm ${fighter.settings.soundEnabled ? 'btn--jade' : ''}`}
+                  onClick={() => void handleToggleSound()}
+                >
+                  {fighter.settings.soundEnabled ? 'Activé' : 'Coupé'}
+                </button>
+              }
+            />
 
-          <div className="stat-row">
-            <div className="stat-row__meta">
-              <span className="stat-row__name">Effets sonores arcade</span>
-              <span className="stat-row__desc">Frappes, critiques, pièces et fanfares</span>
-            </div>
-            <button
-              type="button"
-              className={`btn btn--sm ${fighter.settings.soundEnabled ? 'btn--jade' : ''}`}
-              onClick={() => void handleToggleSound()}
-            >
-              {fighter.settings.soundEnabled ? (
-                <>
-                  <Volume2 size={15} />
-                  Activé
-                </>
-              ) : (
-                <>
-                  <VolumeX size={15} />
-                  Coupé
-                </>
-              )}
-            </button>
-          </div>
+            <MbRow
+              icon={<Volume2 size={22} color="var(--accent-flame-dark)" />}
+              title="Volume sonore"
+              level={`${volumePercent}%`}
+              desc={
+                <div className="settings-volume-bar">
+                  <input
+                    id="volume-slider"
+                    aria-label="Volume sonore"
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={volumePercent}
+                    onChange={(e) => void handleVolumeChange(Number(e.target.value) / 100)}
+                    className="settings-slider"
+                  />
+                </div>
+              }
+              right={
+                <button
+                  type="button"
+                  className="btn btn--sm btn--gold"
+                  disabled={!fighter.settings.soundEnabled}
+                  onClick={() => soundEngine.play('victory')}
+                >
+                  Tester
+                </button>
+              }
+            />
 
-          <div
-            style={{
-              padding: '10px 12px',
-              border: '2px solid var(--ink-strong)',
-              borderRadius: 12,
-              background: 'var(--bg-parchment)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <label htmlFor="volume-slider" style={{ fontWeight: 800, fontSize: '0.9rem' }}>
-                Volume : {Math.round(fighter.settings.soundVolume * 100)}%
-              </label>
-              <button
-                type="button"
-                className="btn btn--sm btn--gold"
-                disabled={!fighter.settings.soundEnabled}
-                onClick={() => soundEngine.play('victory')}
-              >
-                Tester le son
-              </button>
-            </div>
-            <input
-              id="volume-slider"
-              type="range"
-              min={0}
-              max={100}
-              value={Math.round(fighter.settings.soundVolume * 100)}
-              onChange={(e) => void handleVolumeChange(Number(e.target.value) / 100)}
-              style={{ width: '100%', accentColor: 'var(--accent-flame)' }}
+            <MbRow
+              icon={<FastForward size={22} color="var(--ink-strong)" />}
+              title="Vitesse de combat"
+              desc="Modifiable aussi pendant un duel"
+              right={
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button
+                    type="button"
+                    className={`btn btn--sm ${fighter.settings.battleSpeed === 1 ? 'btn--primary' : ''}`}
+                    onClick={() => void handleBattleSpeed(1)}
+                  >
+                    1x
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn btn--sm ${fighter.settings.battleSpeed === 2 ? 'btn--primary' : ''}`}
+                    onClick={() => void handleBattleSpeed(2)}
+                  >
+                    2x
+                  </button>
+                </div>
+              }
+            />
+
+            <MbRow
+              icon={<Sparkles size={22} color="var(--ink-strong)" />}
+              title="Mouvements réduits"
+              desc="Allège les secousses et animations"
+              right={
+                <button
+                  type="button"
+                  className={`btn btn--sm ${fighter.settings.reducedMotion ? 'btn--sky' : ''}`}
+                  onClick={() => void handleReducedMotion()}
+                >
+                  {fighter.settings.reducedMotion ? 'Activé' : 'Désactivé'}
+                </button>
+              }
             />
           </div>
+        </SectionCard>
 
-          <div className="stat-row">
-            <div className="stat-row__meta">
-              <span className="stat-row__name">
-                <FastForward size={14} style={{ verticalAlign: 'middle', marginRight: 5 }} />
-                Vitesse de combat par défaut
-              </span>
-              <span className="stat-row__desc">Modifiable aussi pendant le combat</span>
-            </div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button
-                type="button"
-                className={`btn btn--sm ${fighter.settings.battleSpeed === 1 ? 'btn--primary' : ''}`}
-                onClick={() => void handleBattleSpeed(1)}
-              >
-                1x
-              </button>
-              <button
-                type="button"
-                className={`btn btn--sm ${fighter.settings.battleSpeed === 2 ? 'btn--primary' : ''}`}
-                onClick={() => void handleBattleSpeed(2)}
-              >
-                2x
-              </button>
-            </div>
-          </div>
+        {/* Account & Persistence */}
+        <SectionCard title="Compte & Sauvegarde Cloud">
+          <div className="mb-stack mb-stack--sm">
+            <MbRow
+              icon={<UserCheck size={22} color="var(--accent-jade-dark)" />}
+              title="Statut du compte"
+              desc={
+                user?.isGuest
+                  ? 'Session Invitée temporaire'
+                  : `Compte enregistré : ${user?.username}`
+              }
+              right={
+                <span className={`mb-tag ${user?.isGuest ? 'mb-tag--orange' : 'mb-tag--olive'}`}>
+                  {user?.isGuest ? 'Invité' : 'Vérifié ✓'}
+                </span>
+              }
+            />
 
-          <div className="stat-row">
-            <div className="stat-row__meta">
-              <span className="stat-row__name">Mouvements réduits</span>
-              <span className="stat-row__desc">Allège les secousses visuelles</span>
-            </div>
+            <MbRow
+              icon={<Database size={22} color="var(--accent-sky-dark)" />}
+              title="Persistance serveur"
+              desc="Stockage actif de tes combattants"
+              right={
+                <span className="mb-tag">
+                  {storageMode === 'postgres' ? 'PostgreSQL' : 'Local JSON'}
+                </span>
+              }
+            />
+
             <button
               type="button"
-              className={`btn btn--sm ${fighter.settings.reducedMotion ? 'btn--sky' : ''}`}
-              onClick={() => void handleReducedMotion()}
+              className="btn btn--sky"
+              style={{ width: '100%', marginTop: 4 }}
+              onClick={() => {
+                soundEngine.play('click');
+                setShowAuthModal(true);
+              }}
             >
-              {fighter.settings.reducedMotion ? 'Activé' : 'Désactivé'}
+              <ShieldCheck size={18} />
+              {user?.isGuest ? 'Sécuriser mon compte / Connexion' : 'Gérer mon compte'}
             </button>
           </div>
-        </div>
-
-        {/* Account & Database Card */}
-        <div className="comic-card card-pad" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <h2 style={{ fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <ShieldCheck size={20} color="var(--accent-jade)" />
-            Compte & Base de Données
-          </h2>
-
-          <div className="stat-row">
-            <div className="stat-row__meta">
-              <span className="stat-row__name">Statut du compte</span>
-              <span className="stat-row__desc">
-                {user?.isGuest ? 'Session Invitée temporaire' : `Compte enregistré : ${user?.username}`}
-              </span>
-            </div>
-            <span
-              className="badge"
-              style={{ background: user?.isGuest ? '#fff3d6' : '#dcfce7' }}
-            >
-              {user?.isGuest ? 'Invité' : 'Vérifié ✓'}
-            </span>
-          </div>
-
-          <div className="stat-row">
-            <div className="stat-row__meta">
-              <span className="stat-row__name">Mode de persistance serveur</span>
-              <span className="stat-row__desc">Stockage actif pour les sauvegardes</span>
-            </div>
-            <span
-              className="badge"
-              style={{ background: storageMode === 'postgres' ? '#dcfce7' : '#e0f2fe' }}
-            >
-              <Database size={12} />
-              {storageMode === 'postgres' ? 'Neon PostgreSQL' : 'Local JSON'}
-            </span>
-          </div>
-
-          <button
-            type="button"
-            className="btn btn--sky"
-            onClick={() => {
-              soundEngine.play('click');
-              setShowAuthModal(true);
-            }}
-          >
-            <ShieldCheck size={18} />
-            {user?.isGuest ? 'Sécuriser mon compte / Connexion' : 'Gérer mon compte'}
-          </button>
-        </div>
+        </SectionCard>
       </div>
 
       {/* Export & Import Save */}
-      <div className="comic-card card-pad" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <h2 style={{ fontSize: '1.15rem' }}>Exporter / Importer une Sauvegarde JSON</h2>
+      <SectionCard
+        title="Exporter / Importer (.json)"
+        right={
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button type="button" className="btn btn--sm btn--gold" onClick={handleExportJson}>
+              <Download size={15} />
+              Télécharger
+            </button>
+            <button
+              type="button"
+              className="btn btn--sm btn--sky"
+              disabled={importing}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload size={15} />
+              Importer fichier
+            </button>
+          </div>
+        }
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/json,.json"
+          onChange={(e) => void handleFileImport(e)}
+          style={{ display: 'none' }}
+        />
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-          <button type="button" className="btn btn--gold" onClick={handleExportJson}>
-            <Download size={18} />
-            Télécharger ma sauvegarde (.json)
-          </button>
-
-          <button
-            type="button"
-            className="btn btn--sky"
-            disabled={importing}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Upload size={18} />
-            Importer un fichier .json
-          </button>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/json,.json"
-            onChange={(e) => void handleFileImport(e)}
-            style={{ display: 'none' }}
-          />
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <label htmlFor="import-json-area" style={{ fontWeight: 800, fontSize: '0.84rem' }}>
+        <div className="mb-stack mb-stack--sm">
+          <label htmlFor="import-json-area" className="mb-caption" style={{ fontSize: '0.9rem' }}>
             Ou colle ton JSON de sauvegarde ci-dessous :
           </label>
           <textarea
@@ -352,65 +327,58 @@ export const SettingsView: React.FC = () => {
             </button>
           </div>
         </div>
-      </div>
+      </SectionCard>
 
       {/* Danger Zone: Reset Fighter */}
-      <div
-        className="comic-card card-pad"
-        style={{
-          background: '#fff1f2',
-          borderColor: '#dc2626',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 10,
-        }}
+      <SectionCard
+        title="Zone de Réinitialisation"
+        className="settings-danger-card"
+        right={<AlertTriangle size={20} color="#b83a28" />}
       >
-        <h2 style={{ fontSize: '1.12rem', color: '#991b1b', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <AlertTriangle size={20} color="#dc2626" />
-          Zone de Réinitialisation
-        </h2>
-        <p style={{ margin: 0, fontSize: '0.86rem', fontWeight: 700, color: '#7f1d1d' }}>
-          Recommencer ton aventure au Niveau 1 avec un nouveau combattant. Pense à exporter ta sauvegarde JSON avant si tu veux la conserver !
-        </p>
+        <div className="mb-stack mb-stack--sm">
+          <p style={{ margin: 0, fontSize: '0.86rem', fontWeight: 700, color: '#7f1d1d' }}>
+            Recommencer ton aventure au Niveau 1 avec un nouveau combattant. Pense à exporter ta sauvegarde JSON avant si tu veux la conserver !
+          </p>
 
-        {!confirmReset ? (
-          <div>
-            <button
-              type="button"
-              className="btn btn--danger btn--sm"
-              onClick={() => {
-                soundEngine.play('click');
-                setConfirmReset(true);
-              }}
-            >
-              <RotateCcw size={15} />
-              Réinitialiser mon combattant
-            </button>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-            <strong style={{ color: '#991b1b', fontSize: '0.9rem' }}>
-              Es-tu absolument sûr(e) ?
-            </strong>
-            <button
-              type="button"
-              className="btn btn--danger btn--sm"
-              disabled={resetting}
-              onClick={() => void handleConfirmReset()}
-            >
-              {resetting ? 'Réinitialisation…' : 'Oui, tout recommencer'}
-            </button>
-            <button
-              type="button"
-              className="btn btn--sm"
-              disabled={resetting}
-              onClick={() => setConfirmReset(false)}
-            >
-              Annuler
-            </button>
-          </div>
-        )}
-      </div>
+          {!confirmReset ? (
+            <div>
+              <button
+                type="button"
+                className="btn btn--danger btn--sm"
+                onClick={() => {
+                  soundEngine.play('click');
+                  setConfirmReset(true);
+                }}
+              >
+                <RotateCcw size={15} />
+                Réinitialiser mon combattant
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+              <strong style={{ color: '#991b1b', fontSize: '0.9rem' }}>
+                Es-tu absolument sûr(e) ?
+              </strong>
+              <button
+                type="button"
+                className="btn btn--danger btn--sm"
+                disabled={resetting}
+                onClick={() => void handleConfirmReset()}
+              >
+                {resetting ? 'Réinitialisation…' : 'Oui, tout recommencer'}
+              </button>
+              <button
+                type="button"
+                className="btn btn--sm"
+                disabled={resetting}
+                onClick={() => setConfirmReset(false)}
+              >
+                Annuler
+              </button>
+            </div>
+          )}
+        </div>
+      </SectionCard>
     </div>
   );
 };

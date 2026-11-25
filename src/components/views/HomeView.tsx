@@ -1,28 +1,41 @@
-import React, { useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
-  Swords,
-  Hand,
-  Gift,
-  Sparkles,
-  Trophy,
-  Flame,
-  Shield,
-  Zap,
   Coins,
-  Crown,
-  X,
+  Gift,
   Palette,
-  ShoppingBag,
+  Sparkles,
+  Swords,
+  X,
 } from 'lucide-react';
-import type { AnimationName, ArenaTheme } from '@shared/types';
+import type { AnimationName, ArenaTheme, CoreStats, EquipmentItem } from '@shared/types';
+import { SKILLS_CATALOG } from '@shared/skillsCatalog';
+import { UPGRADES_CATALOG, getUpgradeCost } from '@shared/upgradesCatalog';
 import { PhaserCanvas } from '@/components/phaser/PhaserCanvas';
-import { useGame } from '@/state/GameContext';
+import {
+  HeartHp,
+  MbRow,
+  ParchmentButton,
+  PriceButton,
+  SectionCard,
+  SegmentedStat,
+  formatCompact,
+} from '@/components/ui/BruteUI';
+import { resolveItemIconUrl } from '@/engine/art/aiAssets';
 import { soundEngine } from '@/engine/audio/soundEffects';
+import { useGame } from '@/state/GameContext';
 
 const ARENA_OPTIONS: { id: ArenaTheme; label: string; emoji: string }[] = [
   { id: 'coliseum', label: 'Colisée', emoji: '🏛️' },
   { id: 'dojo', label: 'Dojo', emoji: '⛩️' },
   { id: 'volcano', label: 'Volcan', emoji: '🌋' },
+];
+
+const CORE_STAT_ROWS: { key: keyof CoreStats; label: string }[] = [
+  { key: 'str', label: 'Force' },
+  { key: 'def', label: 'Défense' },
+  { key: 'agi', label: 'Agilité' },
+  { key: 'vit', label: 'Vitalité' },
+  { key: 'lck', label: 'Chance' },
 ];
 
 function formatDuration(seconds: number): string {
@@ -38,6 +51,7 @@ export const HomeView: React.FC = () => {
     fighter,
     derivedStats,
     clickMetrics,
+    effectiveGold,
     homeArena,
     setHomeArena,
     setActiveView,
@@ -47,17 +61,104 @@ export const HomeView: React.FC = () => {
     claimableMissionsCount,
     claimDailyReward,
     setShowCreationModal,
+    registerClickStrike,
+    allocateStat,
+    buyUpgrade,
     addToast,
   } = useGame();
 
   const [previewAnim, setPreviewAnim] = useState<{ anim: AnimationName; nonce: number } | null>(null);
   const [claimingDaily, setClaimingDaily] = useState(false);
+  const [allocatingStat, setAllocatingStat] = useState<string | null>(null);
+  const [buyingId, setBuyingId] = useState<string | null>(null);
+  const [tapFeedback, setTapFeedback] = useState<{ text: string; nonce: number } | null>(null);
+  const tapComboRef = useRef(0);
+  const tapTimerRef = useRef<number | null>(null);
+
+  const quickUpgrades = useMemo(() => UPGRADES_CATALOG.slice(0, 3), []);
+
+  // Collect equipped + owned gear for the wooden board (equipped first, deduplicated)
+  const boardItems = useMemo<Array<{ item: EquipmentItem; equipped: boolean }>>(() => {
+    if (!fighter) return [];
+    const seen = new Set<string>();
+    const list: Array<{ item: EquipmentItem; equipped: boolean }> = [];
+    const equippedSlots = [
+      fighter.equipped.weapon,
+      fighter.equipped.helmet,
+      fighter.equipped.armor,
+      fighter.equipped.gloves,
+      fighter.equipped.boots,
+    ];
+    for (const eq of equippedSlots) {
+      if (eq && !seen.has(eq.uid)) {
+        seen.add(eq.uid);
+        list.push({ item: eq, equipped: true });
+      }
+    }
+    for (const inv of fighter.inventory) {
+      if (list.length >= 10) break;
+      if (!seen.has(inv.uid)) {
+        seen.add(inv.uid);
+        list.push({ item: inv, equipped: false });
+      }
+    }
+    return list;
+  }, [fighter]);
 
   if (!fighter || !derivedStats || !clickMetrics) return null;
+
+  const statScale = Math.max(
+    10,
+    Math.ceil(
+      Math.max(
+        fighter.baseStats.str,
+        fighter.baseStats.def,
+        fighter.baseStats.agi,
+        fighter.baseStats.vit,
+        fighter.baseStats.lck,
+        10,
+      ) / 10,
+    ) * 10,
+  );
+
+  const weaponLabel = fighter.equipped.weapon?.name ?? 'Poings Nus';
+  const armorLabel =
+    fighter.equipped.armor?.name ??
+    fighter.equipped.helmet?.name ??
+    'Pagnes en Toile';
 
   const triggerPose = (anim: AnimationName) => {
     soundEngine.play(anim === 'special' ? 'special' : anim === 'attack' ? 'hit' : 'click');
     setPreviewAnim((prev) => ({ anim, nonce: (prev?.nonce ?? 0) + 1 }));
+  };
+
+  const handleQuickTrainTap = () => {
+    tapComboRef.current += 1;
+    if (tapTimerRef.current) {
+      window.clearTimeout(tapTimerRef.current);
+    }
+    tapTimerRef.current = window.setTimeout(() => {
+      tapComboRef.current = 0;
+      setTapFeedback(null);
+    }, 1800);
+
+    const isCrit = Math.random() < clickMetrics.clickCritChance;
+    registerClickStrike({
+      isCrit,
+      isFever: false,
+      combo: tapComboRef.current,
+      feverProgress: 0,
+    });
+    soundEngine.play(isCrit ? 'heavy_hit' : 'hit');
+    setPreviewAnim((prev) => ({
+      anim: isCrit ? 'special' : 'attack',
+      nonce: (prev?.nonce ?? 0) + 1,
+    }));
+    const gain = Math.round(clickMetrics.goldPerClick * (isCrit ? 1.5 : 1));
+    setTapFeedback((prev) => ({
+      text: `${isCrit ? '💥 ' : '+'}${gain} Or`,
+      nonce: (prev?.nonce ?? 0) + 1,
+    }));
   };
 
   const handleQuickDailyClaim = async () => {
@@ -75,45 +176,48 @@ export const HomeView: React.FC = () => {
     }
   };
 
+  const handleInlineAllocate = async (stat: keyof CoreStats) => {
+    if (fighter.statPoints <= 0 || allocatingStat) return;
+    setAllocatingStat(stat);
+    try {
+      await allocateStat(stat, 1);
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : 'Erreur d’allocation.', 'error');
+    } finally {
+      setAllocatingStat(null);
+    }
+  };
+
+  const handleQuickBuy = async (upgradeId: string) => {
+    if (buyingId) return;
+    setBuyingId(upgradeId);
+    try {
+      await buyUpgrade(upgradeId);
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : 'Or insuffisant.', 'error');
+    } finally {
+      setBuyingId(null);
+    }
+  };
+
+  const unlockedSkillsCount = SKILLS_CATALOG.filter((s) => (fighter.skills[s.id] ?? 0) > 0).length;
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="cell-page">
       {/* Offline Earnings Welcome Banner */}
       {offlineEarnings && (
-        <div
-          className="comic-card card-pad animate-pop"
-          style={{
-            background: 'linear-gradient(135deg, #fff6d1 0%, #ffe6a3 100%)',
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 12,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 14,
-                background: 'var(--accent-gold)',
-                border: '2.5px solid var(--ink-strong)',
-                display: 'grid',
-                placeItems: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <Coins size={24} color="var(--ink-strong)" />
+        <div className="cell-banner animate-pop">
+          <div className="cell-banner__left">
+            <div className="cell-banner__icon">
+              <Coins size={22} />
             </div>
             <div>
-              <h3 style={{ fontSize: '1.08rem' }}>
-                Tes apprentis ont travaillé pendant {formatDuration(offlineEarnings.secondsAway)} !
-              </h3>
-              <p style={{ margin: '2px 0 0', fontWeight: 800, color: '#7c4b00', fontSize: '0.9rem' }}>
-                Gains hors-ligne déjà crédités : +{offlineEarnings.goldEarned.toLocaleString('fr-FR')} Or
-                {offlineEarnings.xpEarned > 0
-                  ? ` & +${offlineEarnings.xpEarned.toLocaleString('fr-FR')} XP`
-                  : ''}
+              <div className="cell-banner__title">
+                Tes apprentis ont travaillé {formatDuration(offlineEarnings.secondsAway)} !
+              </div>
+              <p className="cell-banner__sub">
+                +{formatCompact(offlineEarnings.goldEarned)} Or
+                {offlineEarnings.xpEarned > 0 ? ` & +${formatCompact(offlineEarnings.xpEarned)} XP` : ''} crédités
               </p>
             </div>
           </div>
@@ -125,160 +229,367 @@ export const HomeView: React.FC = () => {
               dismissOfflineEarnings();
             }}
           >
-            <X size={16} />
+            <X size={15} />
             Super !
           </button>
         </div>
       )}
 
-      {/* Main Hero Grid */}
-      <div className="grid-2" style={{ alignItems: 'stretch' }}>
-        {/* Left: Live Phaser Hero Showcase */}
-        <div className="comic-card card-pad" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 8,
-            }}
-          >
+      {/* Daily Reward / Claimable Missions Compact Banner */}
+      {(canClaimDaily || claimableMissionsCount > 0) && (
+        <div className="cell-banner">
+          <div className="cell-banner__left">
+            <div className="cell-banner__icon">
+              <Gift size={20} />
+            </div>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                <h1 style={{ fontSize: '1.45rem' }}>{fighter.name}</h1>
-                <span className="badge" style={{ background: '#ffe4b5' }}>
-                  <Crown size={13} color="#d97706" />
-                  {fighter.title}
-                </span>
+              <div className="cell-banner__title">
+                {canClaimDaily
+                  ? `Cadeau du Jour ${(fighter.dailyStreak % 7) + 1} disponible !`
+                  : `${claimableMissionsCount} récompense(s) de mission prête(s) !`}
               </div>
-              <p style={{ margin: '2px 0 0', fontSize: '0.86rem', color: 'var(--ink-muted)', fontWeight: 700 }}>
-                « {fighter.appearance.warCry} »
+              <p className="cell-banner__sub">
+                Récupère ton or, tes gemmes et tes coffres bonus du dojo.
               </p>
             </div>
-
-            <div style={{ display: 'flex', gap: 5 }}>
-              {ARENA_OPTIONS.map((ar) => (
-                <button
-                  key={ar.id}
-                  type="button"
-                  className={`tab-btn ${homeArena === ar.id ? 'tab-btn--active' : ''}`}
-                  style={{ minHeight: 34, padding: '4px 10px', fontSize: '0.78rem' }}
-                  onClick={() => {
-                    soundEngine.play('click');
-                    setHomeArena(ar.id);
-                  }}
-                >
-                  {ar.emoji} {ar.label}
-                </button>
-              ))}
-            </div>
           </div>
-
-          <div className="stage-frame stage-frame--hero">
-            <PhaserCanvas
-              mode="showcase"
-              arena={homeArena}
-              fighter={{ appearance: fighter.appearance, equipped: fighter.equipped }}
-              previewAnim={previewAnim}
-            />
-          </div>
-
-          {/* Interactive pose triggers + quick style button */}
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 8,
-            }}
-          >
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          <div className="cell-banner__actions">
+            {canClaimDaily && (
               <button
                 type="button"
-                className="btn btn--sm"
-                onClick={() => triggerPose('attack')}
+                className="btn btn--sm btn--gold"
+                disabled={claimingDaily}
+                onClick={() => void handleQuickDailyClaim()}
               >
-                ⚔️ Frapper
+                <Gift size={15} />
+                {claimingDaily ? 'En cours…' : 'Réclamer'}
               </button>
-              <button
-                type="button"
-                className="btn btn--sm"
-                onClick={() => triggerPose('special')}
-              >
-                ✨ Spécial
-              </button>
-              <button
-                type="button"
-                className="btn btn--sm"
-                onClick={() => triggerPose('victory')}
-              >
-                🏆 Célébrer
-              </button>
-            </div>
-
+            )}
             <button
               type="button"
-              className="btn btn--sm btn--sky"
+              className="btn btn--sm"
               onClick={() => {
                 soundEngine.play('click');
-                setShowCreationModal(true);
+                setActiveView('missions');
               }}
             >
-              <Palette size={15} />
-              Apparence
+              <Sparkles size={15} />
+              Missions
             </button>
           </div>
         </div>
+      )}
 
-        {/* Right: Power Summary + Combat Readiness */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div
-            className="comic-card card-pad"
-            style={{
-              background: 'linear-gradient(135deg, #fffdf5 0%, #fff1cc 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 12,
-            }}
-          >
-            <div>
-              <div style={{ fontSize: '0.78rem', fontWeight: 900, textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
-                Puissance de Combat
-              </div>
-              <div
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '2rem',
-                  fontWeight: 700,
-                  color: 'var(--accent-flame)',
-                  lineHeight: 1.1,
+      {/* Main Cellule Grid:
+          Mobile: Hero -> Stats -> Arsenal -> Training -> Arena CTA
+          PC: Left (Arsenal + Training) | Right (Hero + Stats + Arena CTA) */}
+      <div className="cell-grid">
+        {/* LEFT COLUMN (PC) */}
+        <div className="cell-col-left">
+          {/* Wooden Weapons Rack + Skill Tiles Grid (IMG_4201) */}
+          <SectionCard
+            className="cell-card-arsenal"
+            title="Armes et équipements de combat"
+            right={
+              <button
+                type="button"
+                className="cell-mini-pill"
+                onClick={() => {
+                  soundEngine.play('click');
+                  setActiveView('inventory');
                 }}
               >
-                {derivedStats.powerScore.toLocaleString('fr-FR')}
+                Sac ({fighter.inventory.length}) →
+              </button>
+            }
+          >
+            <div
+              className="wood-board cell-wood-wrap"
+              role="button"
+              tabIndex={0}
+              aria-label="Ouvrir l'inventaire"
+              onClick={() => {
+                soundEngine.play('click');
+                setActiveView('inventory');
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setActiveView('inventory');
+                }
+              }}
+            >
+              {boardItems.length === 0 ? (
+                <div className="wood-board__empty">
+                  Aucune arme accrochée au râtelier — visite la Boutique pour équiper ta brute !
+                </div>
+              ) : (
+                boardItems.map(({ item, equipped }) => (
+                  <div
+                    key={item.uid}
+                    className={`wood-board__item ${equipped ? 'cell-wood-item--equipped' : ''}`}
+                    title={`${item.name}${equipped ? ' (Équipé)' : ''}`}
+                  >
+                    <img src={resolveItemIconUrl(item)} alt={item.name} />
+                    {equipped && <span className="cell-wood-item-badge">✓</span>}
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="cell-skills-block">
+              <div className="cell-skills-head">
+                <span className="mb-caption">
+                  Compétences ({unlockedSkillsCount}/{SKILLS_CATALOG.length})
+                </span>
+                <button
+                  type="button"
+                  className="cell-mini-pill"
+                  onClick={() => {
+                    soundEngine.play('click');
+                    setActiveView('skills');
+                  }}
+                >
+                  Gérer →
+                </button>
+              </div>
+              <div className="skill-grid">
+                {SKILLS_CATALOG.map((skill) => {
+                  const lvl = fighter.skills[skill.id] ?? 0;
+                  const unlocked = lvl > 0;
+                  return (
+                    <button
+                      key={skill.id}
+                      type="button"
+                      className={`skill-tile ${unlocked ? 'skill-tile--on' : ''}`}
+                      title={`${skill.name} ${unlocked ? `(Niv.${lvl})` : `(Niv. requis : ${skill.unlockLevel})`}`}
+                      onClick={() => {
+                        soundEngine.play('click');
+                        setActiveView('skills');
+                      }}
+                    >
+                      <span aria-hidden="true">{skill.icon}</span>
+                      {unlocked && <span className="skill-tile__lvl">{lvl}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* Quick Training Upgrades (IMG_4207 bottom) */}
+          <SectionCard
+            className="cell-card-training"
+            title="Entraînement & Compétences"
+            right={
+              <button
+                type="button"
+                className="cell-mini-pill"
+                onClick={() => {
+                  soundEngine.play('click');
+                  setActiveView('upgrades');
+                }}
+              >
+                Tout voir →
+              </button>
+            }
+          >
+            <div className="mb-stack mb-stack--sm">
+              {quickUpgrades.map((upg) => {
+                const currentLvl = fighter.upgrades[upg.id] ?? 0;
+                const isMax = currentLvl >= upg.maxLevel;
+                const cost = getUpgradeCost(upg, currentLvl);
+                const canAfford = effectiveGold >= cost;
+
+                return (
+                  <MbRow
+                    key={upg.id}
+                    icon={<span>{upg.icon}</span>}
+                    title={upg.name}
+                    level={`Niv.${currentLvl}`}
+                    desc={upg.effectLabel}
+                    right={
+                      isMax ? (
+                        <span className="mb-tag mb-tag--olive">MAX</span>
+                      ) : (
+                        <PriceButton
+                          cost={cost}
+                          disabled={!canAfford || buyingId === upg.id}
+                          onClick={() => void handleQuickBuy(upg.id)}
+                          title={`Améliorer ${upg.name} pour ${cost} Or`}
+                        />
+                      )
+                    }
+                  />
+                );
+              })}
+            </div>
+          </SectionCard>
+        </div>
+
+        {/* RIGHT COLUMN (PC) */}
+        <div className="cell-col-right">
+          {/* Card 1: Hero Stage Card (IMG_4207 top) */}
+          <SectionCard className="cell-card-hero">
+            <div className="cell-hero-head">
+              <div className="cell-hero-name">
+                <h2 className="mb-section-title">{fighter.name}</h2>
+              </div>
+              <button
+                type="button"
+                className="cell-train-pill"
+                onClick={handleQuickTrainTap}
+                title="Tape pour entraîner ta brute et gagner de l'or instantanément !"
+              >
+                👊 TAPE POUR ENTRAÎNER (+{clickMetrics.goldPerClick} Or)
+              </button>
+            </div>
+
+            <div className="cell-stage-wrap">
+              <div
+                className="cell-stage-canvas"
+                onClick={handleQuickTrainTap}
+                style={{ cursor: 'pointer' }}
+                title="Tape sur ta brute pour t'entraîner !"
+              >
+                <PhaserCanvas
+                  mode="showcase"
+                  arena={homeArena}
+                  fighter={{ appearance: fighter.appearance, equipped: fighter.equipped }}
+                  previewAnim={previewAnim}
+                />
+                {tapFeedback && (
+                  <div key={tapFeedback.nonce} className="cell-tap-float">
+                    {tapFeedback.text}
+                  </div>
+                )}
+              </div>
+
+              {/* Dark-brown equipment strip (IMG_4207) */}
+              <div
+                className="cell-equip-strip"
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  soundEngine.play('click');
+                  setActiveView('inventory');
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setActiveView('inventory');
+                  }
+                }}
+                title="Voir et changer ton équipement"
+              >
+                <span className="cell-equip-strip__slot">⚔️ {weaponLabel}</span>
+                <span className="cell-equip-strip__slot cell-equip-strip__slot--right">
+                  🛡️ {armorLabel}
+                </span>
               </div>
             </div>
 
-            <div style={{ textAlign: 'right' }}>
-              <div className="badge" style={{ background: '#e0f2fe', marginBottom: 4 }}>
-                <Trophy size={13} color="#0284c7" />
-                Elo {fighter.rating}
+            {/* Compact Arena Theme Switcher + Pose / Style controls */}
+            <div className="cell-stage-controls">
+              <div className="cell-pill-group">
+                {ARENA_OPTIONS.map((ar) => (
+                  <button
+                    key={ar.id}
+                    type="button"
+                    className={`cell-mini-pill ${homeArena === ar.id ? 'cell-mini-pill--active' : ''}`}
+                    onClick={() => {
+                      soundEngine.play('click');
+                      setHomeArena(ar.id);
+                    }}
+                  >
+                    {ar.emoji} {ar.label}
+                  </button>
+                ))}
               </div>
-              <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--ink-muted)' }}>
-                {fighter.progress.arenaWins}V - {fighter.progress.arenaLosses}D • Série {fighter.progress.winStreak}🔥
+
+              <div className="cell-pill-group">
+                <button
+                  type="button"
+                  className="cell-mini-pill"
+                  onClick={() => triggerPose('special')}
+                  title="Animation spéciale"
+                >
+                  ✨ Pose
+                </button>
+                <button
+                  type="button"
+                  className="cell-mini-pill"
+                  onClick={() => {
+                    soundEngine.play('click');
+                    setShowCreationModal(true);
+                  }}
+                >
+                  <Palette size={13} />
+                  Style
+                </button>
+                <button
+                  type="button"
+                  className="cell-mini-pill"
+                  onClick={() => {
+                    soundEngine.play('click');
+                    setActiveView('clicker');
+                  }}
+                >
+                  🥋 Dojo
+                </button>
               </div>
             </div>
-          </div>
+          </SectionCard>
 
-          <div className="comic-card card-pad" style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h3 style={{ fontSize: '1.08rem', display: 'flex', alignItems: 'center', gap: 7 }}>
-                <Shield size={18} color="var(--accent-sky)" />
-                Résumé du Combattant
-              </h3>
-              {fighter.statPoints > 0 && (
+          {/* Card 2: Heart HP + Segmented Stats (IMG_4207 middle & IMG_4201 right) */}
+          <SectionCard className="cell-card-stats">
+            <div className="cell-stats-head">
+              <HeartHp hp={derivedStats.maxHp} />
+              <div className="cell-rank-pill">
+                Rang : {fighter.title}
+              </div>
+            </div>
+
+            <div className="cell-stat-list">
+              {CORE_STAT_ROWS.map((st) => {
+                const baseVal = fighter.baseStats[st.key];
+                const bonusVal = Object.values(fighter.equipped).reduce(
+                  (sum, eq) => sum + (eq?.baseStats[st.key] ?? 0),
+                  0,
+                );
+                const totalVal = baseVal + bonusVal;
+
+                return (
+                  <div key={st.key} className="cell-stat-line">
+                    <div className="cell-stat-line__bar">
+                      <SegmentedStat
+                        label={st.label}
+                        value={baseVal}
+                        bonus={bonusVal}
+                        max={statScale}
+                        display={totalVal}
+                      />
+                    </div>
+                    {fighter.statPoints > 0 && (
+                      <button
+                        type="button"
+                        className="cell-stat-plus"
+                        disabled={allocatingStat !== null}
+                        onClick={() => void handleInlineAllocate(st.key)}
+                        title={`Ajouter +1 en ${st.label}`}
+                        aria-label={`Ajouter +1 en ${st.label}`}
+                      >
+                        +
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {fighter.statPoints > 0 && (
+              <div className="cell-points-bar">
+                <span>⭐ {fighter.statPoints} point(s) à répartir !</span>
                 <button
                   type="button"
                   className="btn btn--sm btn--gold"
@@ -287,169 +598,43 @@ export const HomeView: React.FC = () => {
                     setActiveView('profile');
                   }}
                 >
-                  +{fighter.statPoints} pts à placer !
+                  Profil complet
                 </button>
-              )}
-            </div>
+              </div>
+            )}
 
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: 8,
+            <div className="cell-power-strip">
+              <span>
+                Puissance <strong>{formatCompact(derivedStats.powerScore)}</strong>
+              </span>
+              <span>
+                Elo <strong>{fighter.rating}</strong>
+              </span>
+              <span>
+                <strong>{fighter.progress.arenaWins}V</strong> - {fighter.progress.arenaLosses}D
+              </span>
+              <span>
+                Auto <strong>{clickMetrics.autoGoldPerSec} Or/s</strong>
+              </span>
+            </div>
+          </SectionCard>
+
+          {/* Giant Torn-Parchment ARÈNE CTA (IMG_4201 bottom right) */}
+          <div className="cell-card-arena cell-arena-box">
+            <p className="mb-flavor" style={{ margin: 0 }}>
+              Si tu veux te défouler sur quelqu&apos;un, c&apos;est par ici ! Plein de Brutes
+              t&apos;attendent dans l&apos;Arène pour échanger des mandales !
+            </p>
+            <ParchmentButton
+              onClick={() => {
+                soundEngine.play('click');
+                setActiveView('arena');
               }}
             >
-              <div className="mini-stat-box">
-                <span>PV Max</span>
-                <strong>❤️ {derivedStats.maxHp}</strong>
-              </div>
-              <div className="mini-stat-box">
-                <span>Dégâts</span>
-                <strong>
-                  ⚔️ {derivedStats.minDamage}–{derivedStats.maxDamage}
-                </strong>
-              </div>
-              <div className="mini-stat-box">
-                <span>Défense</span>
-                <strong>🛡️ {derivedStats.defense}</strong>
-              </div>
-              <div className="mini-stat-box">
-                <span>Critique / Esquive</span>
-                <strong>
-                  💥 {Math.round(derivedStats.critChance * 100)}% / 💨 {Math.round(derivedStats.dodgeChance * 100)}%
-                </strong>
-              </div>
-              <div className="mini-stat-box">
-                <span>Gain par clic</span>
-                <strong>🪙 +{clickMetrics.goldPerClick} Or</strong>
-              </div>
-              <div className="mini-stat-box">
-                <span>Revenu Auto</span>
-                <strong>⚙️ {clickMetrics.autoGoldPerSec} Or/s</strong>
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 'auto' }}>
-              <button
-                type="button"
-                className="btn btn--primary btn--lg"
-                onClick={() => {
-                  soundEngine.play('click');
-                  setActiveView('arena');
-                }}
-              >
-                <Swords size={20} />
-                Combattre !
-              </button>
-              <button
-                type="button"
-                className="btn btn--gold btn--lg"
-                onClick={() => {
-                  soundEngine.play('click');
-                  setActiveView('clicker');
-                }}
-              >
-                <Hand size={20} />
-                Dojo Clicker
-              </button>
-            </div>
+              <Swords size={26} />
+              ARÈNE
+            </ParchmentButton>
           </div>
-        </div>
-      </div>
-
-      {/* Quick Action Cards */}
-      <div className="grid-cards">
-        <div
-          className="comic-card card-pad"
-          style={{ display: 'flex', flexDirection: 'column', gap: 10, background: '#fff7e6' }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h3 style={{ fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Gift size={19} color="#d97706" />
-              Récompense Quotidienne
-            </h3>
-            {canClaimDaily && (
-              <span className="badge" style={{ background: '#ffd152' }}>
-                Disponible !
-              </span>
-            )}
-          </div>
-          <p style={{ margin: 0, fontSize: '0.86rem', color: 'var(--ink-muted)', fontWeight: 700 }}>
-            {canClaimDaily
-              ? `Jour ${(fighter.dailyStreak % 7) + 1} prêt à être récupéré ! Or, Gemmes et coffres bonus.`
-              : `Série actuelle : ${fighter.dailyStreak} jour(s). Reviens demain pour la suite !`}
-          </p>
-          <button
-            type="button"
-            className={`btn ${canClaimDaily ? 'btn--gold' : ''}`}
-            disabled={claimingDaily}
-            onClick={() => void handleQuickDailyClaim()}
-            style={{ marginTop: 'auto' }}
-          >
-            <Gift size={17} />
-            {claimingDaily
-              ? 'Réclamation…'
-              : canClaimDaily
-                ? 'Réclamer maintenant !'
-                : 'Voir le calendrier'}
-          </button>
-        </div>
-
-        <div className="comic-card card-pad" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h3 style={{ fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Flame size={19} color="var(--accent-flame)" />
-              Missions & Succès
-            </h3>
-            {claimableMissionsCount > 0 && (
-              <span className="badge" style={{ background: '#dcfce7' }}>
-                {claimableMissionsCount} prête(s)
-              </span>
-            )}
-          </div>
-          <p style={{ margin: 0, fontSize: '0.86rem', color: 'var(--ink-muted)', fontWeight: 700 }}>
-            Accomplis des quêtes du dojo pour gagner des gemmes, de l’or et de l’expérience bonus.
-          </p>
-          <button
-            type="button"
-            className={`btn ${claimableMissionsCount > 0 ? 'btn--jade' : ''}`}
-            onClick={() => {
-              soundEngine.play('click');
-              setActiveView('missions');
-            }}
-            style={{ marginTop: 'auto' }}
-          >
-            <Sparkles size={17} />
-            Ouvrir les Missions
-          </button>
-        </div>
-
-        <div className="comic-card card-pad" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h3 style={{ fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <ShoppingBag size={19} color="var(--accent-sky)" />
-              Boutique & Coffres
-            </h3>
-            <span className="badge" style={{ background: '#e6f6ff' }}>
-              <Zap size={12} color="#ea580c" />
-              {fighter.energy}/{fighter.maxEnergy}
-            </span>
-          </div>
-          <p style={{ margin: 0, fontSize: '0.86rem', color: 'var(--ink-muted)', fontWeight: 700 }}>
-            Ouvre des coffres mystères ou achète des équipements rares qui apparaissent sur ta brute !
-          </p>
-          <button
-            type="button"
-            className="btn btn--sky"
-            onClick={() => {
-              soundEngine.play('click');
-              setActiveView('shop');
-            }}
-            style={{ marginTop: 'auto' }}
-          >
-            <ShoppingBag size={17} />
-            Visiter la Boutique
-          </button>
         </div>
       </div>
     </div>

@@ -1,0 +1,830 @@
+/* ============================================================================
+   BRUTE LEGENDS — Arena & Leaderboard Views ("Arène Parchemin" / My Brute)
+   ============================================================================ */
+
+.arena-view,
+.lb-view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------------------------------------------------------------------------
+   Fight Stage Card (dark-brown frame modeled on IMG_4208.PNG)
+   --------------------------------------------------------------------------- */
+.arena-stage-card {
+  padding: 10px;
+  border: 4px solid #6b3f22;
+  border-radius: 16px;
+  box-shadow: 0 5px 0 #4a2a16, inset 0 2px 0 rgba(255, 224, 178, 0.14);
+}
+
+@media (min-width: 768px) {
+  .arena-stage-card {
+    padding: 12px 14px;
+  }
+}
+
+.arena-stage__hud {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.arena-stage__fighter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.arena-stage__name-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+}
+
+.arena-stage__fighter--right .arena-stage__name-row {
+  flex-direction: row-reverse;
+}
+
+.arena-stage__name {
+  font-family: var(--font-display);
+  font-size: clamp(0.84rem, 2.7vw, 1.08rem);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff6e0;
+  text-shadow: 0 2px 0 rgba(20, 10, 4, 0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.arena-stage__hp-text {
+  font-family: var(--font-display);
+  font-size: clamp(0.8rem, 2.4vw, 0.98rem);
+  letter-spacing: 0.03em;
+  color: #ffd84d;
+  text-shadow: 0 1px 0 rgba(20, 10, 4, 0.85);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.arena-stage__hp-meter {
+  height: 15px;
+  background: #23160e;
+  border: 2px solid #180f09;
+  border-radius: 5px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.45);
+}
+
+.arena-stage__fighter--right .arena-stage__hp-meter .meter__fill {
+  margin-left: auto;
+}
+
+.arena-stage__rage-meter {
+  height: 5px;
+  background: #23160e;
+  border: 1px solid #180f09;
+  border-radius: 4px;
+}
+
+.arena-stage__fighter--right .arena-stage__rage-meter .meter__fill {
+  margin-left: auto;
+}
+
+/* Phaser Arena Canvas frame */
+.arena-stage__viewport {
+  position: relative;
+  width: 100%;
+  height: 226px;
+  border-radius: 10px;
+  border: 2px solid #21140c;
+  background: #2c1e16;
+  overflow: hidden;
+  box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.35);
+}
+
+@media (min-width: 480px) {
+  .arena-stage__viewport {
+    height: 256px;
+  }
+}
+
+@media (min-width: 860px) {
+  .arena-stage__viewport {
+    height: 300px;
+  }
+}
+
+.arena-stage__arena-pill {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(34, 20, 12, 0.78);
+  border: 1.5px solid rgba(255, 224, 150, 0.45);
+  color: #ffe9b8;
+  font-family: var(--font-title);
+  font-size: 0.76rem;
+  letter-spacing: 0.03em;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* Idle rival preview on the right side of the stage before combat begins */
+.arena-stage__idle-rival {
+  position: absolute;
+  right: 10%;
+  bottom: 11%;
+  height: 62%;
+  width: auto;
+  max-width: 36%;
+  object-fit: contain;
+  z-index: 3;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 6px rgba(15, 8, 4, 0.55));
+}
+
+.arena-stage__idle-rival-wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.arena-stage__idle-rival-img {
+  position: absolute;
+  right: 10%;
+  bottom: 10%;
+  height: 64%;
+  max-width: 36%;
+  object-fit: contain;
+  transform: scaleX(-1);
+  filter: drop-shadow(0 6px 6px rgba(15, 8, 4, 0.55));
+}
+
+/* Bottom status strip inside the dark frame */
+.arena-stage__status {
+  margin-top: 8px;
+  min-height: 40px;
+  padding: 6px 12px;
+  border-radius: 9px;
+  background: #23160e;
+  border: 2px solid #593822;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.arena-stage__status-text {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-title);
+  font-size: 0.92rem;
+  color: #ffe28a;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.arena-stage__status--combat .arena-stage__status-text {
+  text-align: left;
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 0.84rem;
+  color: #fff2cc;
+}
+
+.arena-stage__controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.arena-stage__ctrl-btn {
+  min-height: 30px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  border-width: 2px;
+}
+
+/* ---------------------------------------------------------------------------
+   Battle Result Banner (parchment celebration / defeat card)
+   --------------------------------------------------------------------------- */
+.arena-result-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.arena-result-card--win {
+  background: linear-gradient(180deg, #fffdf0 0%, #f7ecc1 100%);
+  border-color: #8a5a10;
+}
+
+.arena-result-card--loss {
+  background: linear-gradient(180deg, #fff6ee 0%, #f6dec9 100%);
+  border-color: #8c3b22;
+}
+
+.arena-result__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.arena-result__heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.arena-result__title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  letter-spacing: 0.04em;
+  line-height: 1.05;
+}
+
+.arena-result__title--win {
+  color: #417220;
+}
+
+.arena-result__title--loss {
+  color: #b4331d;
+}
+
+.arena-result__sub {
+  margin: 2px 0 0;
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: var(--ink-body);
+}
+
+.arena-result__rewards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.arena-result__levelup {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 2px solid #c48a06;
+  background: linear-gradient(180deg, #fff4a8 0%, #ffe066 100%);
+  color: var(--ink-strong);
+  font-weight: 900;
+  font-size: 0.86rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.arena-result__loot {
+  padding: 10px 12px;
+  border-radius: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.arena-result__loot-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.arena-result__loot-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  background: radial-gradient(circle at 50% 45%, #ffffff 0%, #fff4d6 100%);
+  box-shadow: 0 2px 0 var(--ink-strong);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  padding: 4px;
+}
+
+.arena-result__loot-icon img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.arena-result__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ---------------------------------------------------------------------------
+   Opponents Picker Header & Filter Tabs
+   --------------------------------------------------------------------------- */
+.arena-opps-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.arena-wins-label {
+  font-family: var(--font-title);
+  font-size: 0.94rem;
+  color: var(--ink-body);
+  white-space: nowrap;
+}
+
+.arena-energy-pill {
+  padding: 3px 10px 3px 5px;
+  font-size: 0.88rem;
+  border-width: 2px;
+}
+
+.arena-filter-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.arena-filter-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 5px 12px;
+  border: 2px solid #c9a77a;
+  border-radius: 999px;
+  background: #fff8e4;
+  color: var(--ink-body);
+  font-family: var(--font-title);
+  font-size: 0.88rem;
+  transition: transform 0.08s ease, background 0.12s ease;
+}
+
+.arena-filter-tab:hover {
+  border-color: #8b4a2b;
+}
+
+.arena-filter-tab--active {
+  border-color: #6b3f22;
+  background: linear-gradient(180deg, #ffb347 0%, #f08a1c 100%);
+  color: #fffaf0;
+  box-shadow: 0 2px 0 #6b3f22;
+  text-shadow: 0 1px 0 rgba(107, 50, 10, 0.7);
+}
+
+/* ---------------------------------------------------------------------------
+   Mobile Opponents List (< 860px, modeled on IMG_4208.PNG)
+   --------------------------------------------------------------------------- */
+.arena-opps-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.arena-opps-pc {
+  display: none;
+}
+
+.arena-row-title-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.arena-row-rewards {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.arena-row-rewards__gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-display);
+  font-size: 0.94rem;
+  color: var(--ink-strong);
+  white-space: nowrap;
+}
+
+.arena-row-rewards__xp {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+.arena-mini-coin {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  display: inline-block;
+  background: radial-gradient(circle at 35% 30%, #fff1a0 0%, #f2c21b 45%, #c48a06 100%);
+  border: 1.5px solid #8a5a06;
+  flex-shrink: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   PC Opponents 2-Column Grid (>= 860px, modeled on IMG_4200.jpg)
+   --------------------------------------------------------------------------- */
+@media (min-width: 860px) {
+  .arena-opps-mobile {
+    display: none;
+  }
+
+  .arena-opps-pc {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+}
+
+.arena-opp-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 94px;
+  gap: 10px;
+  align-items: stretch;
+  padding: 12px 10px 12px 14px;
+  border: 3px solid #8b5a35;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fffdf0 0%, #f6e7bd 100%);
+  box-shadow: 0 4px 0 #6b3f22, inset 0 2px 0 rgba(255, 255, 255, 0.75);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, border-color 0.12s ease;
+}
+
+.arena-opp-card:hover:not(.arena-opp-card--locked) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #6b3f22, inset 0 2px 0 rgba(255, 255, 255, 0.8);
+}
+
+.arena-opp-card--boss {
+  background: linear-gradient(180deg, #fff4e8 0%, #f8d8be 100%);
+}
+
+.arena-opp-card--selected {
+  border-color: #e2700c;
+  background: linear-gradient(180deg, #fff5df 0%, #ffe3b2 100%);
+  box-shadow: 0 4px 0 #c4600a, 0 0 0 3px rgba(240, 138, 28, 0.25);
+}
+
+.arena-opp-card--locked {
+  border-color: #cdb48a;
+  background: #f2e5c0;
+  box-shadow: 0 3px 0 #cdb48a;
+  opacity: 0.78;
+  cursor: not-allowed;
+}
+
+.arena-opp-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.arena-opp-card__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.arena-opp-card__name {
+  font-family: var(--font-title);
+  font-size: 1.04rem;
+  color: var(--ink-strong);
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.arena-opp-card__sub {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--ink-muted);
+  line-height: 1.2;
+}
+
+.arena-opp-card__stats-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.arena-opp-card__stats-row .heart-hp__heart {
+  width: 44px;
+  height: 40px;
+  font-size: 0.88rem;
+}
+
+.arena-opp-card__bars {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.arena-mini-stat {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  align-items: center;
+  gap: 5px;
+}
+
+.arena-mini-stat__lbl {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  color: var(--ink-title);
+  line-height: 1;
+}
+
+.arena-opp-card__foot {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--ink-body);
+}
+
+.arena-opp-card__portrait {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  border-radius: 10px;
+  background: radial-gradient(circle at 50% 60%, rgba(255, 252, 238, 0.95) 0%, rgba(235, 212, 162, 0.45) 100%);
+  border: 2px solid rgba(139, 90, 53, 0.35);
+  overflow: hidden;
+  padding: 4px;
+}
+
+.arena-opp-card__portrait img {
+  width: 100%;
+  height: 98px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 2px rgba(74, 42, 22, 0.25));
+}
+
+.arena-opp-card--locked .arena-opp-card__portrait {
+  align-items: center;
+  color: #9a7656;
+}
+
+/* ---------------------------------------------------------------------------
+   Compact Parchment Combat Log
+   --------------------------------------------------------------------------- */
+.arena-log {
+  max-height: 170px;
+  overflow-y: auto;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 2px solid #cdb48a;
+  background: var(--bg-panel-sunk);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.arena-log__entry {
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: var(--ink-body);
+  line-height: 1.3;
+  padding: 3px 6px;
+  border-radius: 6px;
+}
+
+.arena-log__entry--crit {
+  background: rgba(240, 138, 28, 0.16);
+  color: #9a3f06;
+  font-weight: 800;
+}
+
+.arena-log__entry--special {
+  background: rgba(148, 64, 192, 0.13);
+  color: #6b21a8;
+  font-weight: 800;
+}
+
+.arena-log__entry--victory {
+  background: rgba(95, 158, 47, 0.2);
+  color: #2f5a12;
+  font-weight: 900;
+}
+
+.arena-log__turn {
+  font-family: var(--font-display);
+  font-size: 0.74rem;
+  color: var(--ink-muted);
+  margin-right: 6px;
+}
+
+/* ---------------------------------------------------------------------------
+   Leaderboard View ("Classement de l'Arène")
+   --------------------------------------------------------------------------- */
+.lb-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lb-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: var(--border-ink);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fffbee 0%, #f7e9c4 100%);
+  box-shadow: var(--shadow-comic-sm), inset 0 2px 0 rgba(255, 255, 255, 0.7);
+  flex-wrap: wrap;
+}
+
+.lb-row--top1 {
+  background: linear-gradient(180deg, #fff8d6 0%, #fae39c 100%);
+  border-color: #a67206;
+}
+
+.lb-row--top2 {
+  background: linear-gradient(180deg, #fdfcf7 0%, #ede6d4 100%);
+  border-color: #7d6d58;
+}
+
+.lb-row--top3 {
+  background: linear-gradient(180deg, #fff3e4 0%, #f5d8b8 100%);
+  border-color: #9c5620;
+}
+
+.lb-row--me {
+  border-color: #e2700c;
+  box-shadow: 0 3px 0 #c4600a, 0 0 0 2px rgba(240, 138, 28, 0.28);
+}
+
+.lb-rank {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 2.5px solid #6b3f22;
+  border-radius: 11px;
+  background: linear-gradient(180deg, #f8e9c2 0%, #e5cd97 100%);
+  box-shadow: 0 2px 0 #6b3f22;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--ink-strong);
+  line-height: 1;
+}
+
+.lb-rank--1 {
+  background: linear-gradient(180deg, #fff199 0%, #f2c21b 55%, #d4940a 100%);
+  border-color: #7a5204;
+  color: #4a2a04;
+}
+
+.lb-rank--2 {
+  background: linear-gradient(180deg, #ffffff 0%, #dfe5ec 55%, #b4beca 100%);
+  border-color: #55606e;
+  color: #2f3844;
+}
+
+.lb-rank--3 {
+  background: linear-gradient(180deg, #ffdcb8 0%, #df8d49 55%, #b35f22 100%);
+  border-color: #6b3510;
+  color: #fff6e8;
+  text-shadow: 0 1px 0 rgba(74, 30, 6, 0.65);
+}
+
+.lb-avatar {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  border: 2.5px solid #6b3f22;
+  background: radial-gradient(circle at 50% 55%, #fffdf5 0%, #f1dfb1 100%);
+  padding: 2px;
+  object-fit: contain;
+}
+
+.lb-info {
+  flex: 1;
+  min-width: 150px;
+}
+
+.lb-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.lb-name {
+  font-family: var(--font-title);
+  font-size: 1.06rem;
+  color: var(--ink-strong);
+  line-height: 1.15;
+}
+
+.lb-sub {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--ink-muted);
+  margin-top: 2px;
+}
+
+.lb-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.lb-stats .heart-hp__heart {
+  width: 44px;
+  height: 40px;
+  font-size: 0.84rem;
+}
+
+.lb-elo-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 2px solid #8b5a35;
+  background: #fff4d4;
+  font-family: var(--font-title);
+  font-size: 0.84rem;
+  color: var(--ink-strong);
+  white-space: nowrap;
+}
+
+.lb-empty {
+  text-align: center;
+  padding: 24px 12px;
+  font-family: var(--font-title);
+  color: var(--ink-muted);
+}
+
+@media (max-width: 560px) {
+  .lb-row {
+    gap: 8px;
+    padding: 9px 10px;
+  }
+
+  .lb-rank {
+    width: 38px;
+    height: 38px;
+    font-size: 0.92rem;
+  }
+
+  .lb-avatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .lb-stats {
+    width: 100%;
+    justify-content: space-between;
+    padding-top: 6px;
+    border-top: 1.5px dashed #d6b98c;
+  }
+}

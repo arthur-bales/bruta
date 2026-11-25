@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Home,
-  User,
   Swords,
-  Hand,
   Backpack,
   ShoppingBag,
   Sparkles,
@@ -13,43 +10,67 @@ import {
   Settings,
   Menu,
   X,
-  Flame,
+  Hand,
+  User,
+  Home,
 } from 'lucide-react';
 import type { ActiveView } from '@shared/types';
 import { useGame } from '@/state/GameContext';
 import { soundEngine } from '@/engine/audio/soundEffects';
+import { AI_HERO_POSES, AI_RIVALS } from '@/engine/art/aiAssets';
 import { TopHud } from './TopHud';
 
-interface NavItem {
+/** The three big "My Brute" tabs. Each one groups several views. */
+interface MainTab {
+  id: 'cellule' | 'arene' | 'arsenal';
+  label: string;
+  sub: string;
+  target: ActiveView;
+  views: ActiveView[];
+}
+
+const MAIN_TABS: MainTab[] = [
+  {
+    id: 'cellule',
+    label: 'Cellule',
+    sub: 'Entraînement',
+    target: 'home',
+    views: ['home', 'profile', 'clicker', 'upgrades'],
+  },
+  {
+    id: 'arene',
+    label: 'Arène',
+    sub: 'Combats',
+    target: 'arena',
+    views: ['arena', 'leaderboard'],
+  },
+  {
+    id: 'arsenal',
+    label: 'Arsenal',
+    sub: 'Équipement',
+    target: 'inventory',
+    views: ['inventory', 'shop', 'skills'],
+  },
+];
+
+interface SubLink {
   id: ActiveView;
   label: string;
-  shortLabel: string;
   icon: React.ReactNode;
 }
 
-const ALL_NAV_ITEMS: NavItem[] = [
-  { id: 'home', label: 'Accueil', shortLabel: 'Accueil', icon: <Home size={19} /> },
-  { id: 'arena', label: 'Arène', shortLabel: 'Arène', icon: <Swords size={19} /> },
-  { id: 'clicker', label: 'Clicker Dojo', shortLabel: 'Clicker', icon: <Hand size={19} /> },
-  { id: 'inventory', label: 'Inventaire', shortLabel: 'Sac', icon: <Backpack size={19} /> },
-  { id: 'profile', label: 'Profil & Stats', shortLabel: 'Profil', icon: <User size={19} /> },
-  { id: 'shop', label: 'Boutique', shortLabel: 'Boutique', icon: <ShoppingBag size={19} /> },
-  { id: 'skills', label: 'Compétences', shortLabel: 'Skills', icon: <Sparkles size={19} /> },
-  { id: 'upgrades', label: 'Améliorations', shortLabel: 'Dojo+', icon: <Hammer size={19} /> },
-  { id: 'leaderboard', label: 'Classements', shortLabel: 'Top PvP', icon: <Trophy size={19} /> },
-  { id: 'missions', label: 'Missions & Quotidien', shortLabel: 'Missions', icon: <Gift size={19} /> },
-  { id: 'settings', label: 'Paramètres', shortLabel: 'Options', icon: <Settings size={19} /> },
-];
-
-const MOBILE_PRIMARY_VIEWS: ActiveView[] = ['home', 'arena', 'clicker', 'inventory'];
-const MOBILE_DRAWER_VIEWS: ActiveView[] = [
-  'profile',
-  'shop',
-  'skills',
-  'upgrades',
-  'leaderboard',
-  'missions',
-  'settings',
+const ALL_LINKS: SubLink[] = [
+  { id: 'home', label: 'Ma cellule', icon: <Home size={16} /> },
+  { id: 'profile', label: 'Profil', icon: <User size={16} /> },
+  { id: 'clicker', label: 'Dojo (clic)', icon: <Hand size={16} /> },
+  { id: 'upgrades', label: 'Améliorations', icon: <Hammer size={16} /> },
+  { id: 'arena', label: 'Combats', icon: <Swords size={16} /> },
+  { id: 'leaderboard', label: 'Classement', icon: <Trophy size={16} /> },
+  { id: 'inventory', label: 'Inventaire', icon: <Backpack size={16} /> },
+  { id: 'shop', label: 'Boutique', icon: <ShoppingBag size={16} /> },
+  { id: 'skills', label: 'Compétences', icon: <Sparkles size={16} /> },
+  { id: 'missions', label: 'Missions', icon: <Gift size={16} /> },
+  { id: 'settings', label: 'Options', icon: <Settings size={16} /> },
 ];
 
 export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -57,6 +78,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const statPoints = fighter?.statPoints ?? 0;
+  const currentTab = MAIN_TABS.find((t) => t.views.includes(activeView));
 
   const getBadgeCount = (view: ActiveView): number => {
     if (view === 'profile' && statPoints > 0) return statPoints;
@@ -64,117 +86,153 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     return 0;
   };
 
-  const drawerHasNotifications = statPoints > 0 || claimableMissionsCount > 0;
-  const isDrawerViewActive = MOBILE_DRAWER_VIEWS.includes(activeView);
+  const tabBadge = (tab: MainTab) => tab.views.reduce((sum, v) => sum + getBadgeCount(v), 0);
 
   const handleNavigate = (view: ActiveView) => {
     soundEngine.play('click');
     setActiveView(view);
     setDrawerOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const subLinks = currentTab
+    ? ALL_LINKS.filter((l) => currentTab.views.includes(l.id))
+    : ALL_LINKS.filter((l) => l.id === 'missions' || l.id === 'settings');
 
   return (
     <div className="app-shell">
-      {/* PC Left Sidebar Rail (>= 1024px) */}
-      <aside className="pc-sidebar" aria-label="Navigation principale">
-        <div
-          className="brand-banner"
-          role="button"
-          tabIndex={0}
-          onClick={() => handleNavigate('home')}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleNavigate('home');
-            }
-          }}
-          style={{ cursor: 'pointer' }}
-        >
-          <div className="brand-banner__emblem">
-            <Flame size={22} />
-          </div>
-          <div>
-            <div className="brand-banner__title">Brute Legends</div>
-            <div className="brand-banner__sub">Arène Chibi RPG</div>
-          </div>
-        </div>
+      <div className="mb-page">
+        {/* ---------- PC banner with logo & mascots ---------- */}
+        <header className="mb-banner" aria-label="Brute Legends">
+          <img className="mb-banner__mascot mb-banner__mascot--left" src={AI_HERO_POSES.victory} alt="" aria-hidden="true" />
+          <button
+            type="button"
+            className="mb-banner__logo-btn"
+            onClick={() => handleNavigate('home')}
+            aria-label="Retour à la cellule"
+          >
+            <img className="mb-banner__logo" src="/assets/ui/logo.webp" alt="Brute Legends" />
+          </button>
+          <div className="mb-banner__tagline">Règle tes comptes dans l’arène !</div>
+          <img className="mb-banner__mascot mb-banner__mascot--right" src={AI_RIVALS.kitsune.url} alt="" aria-hidden="true" />
+        </header>
 
-        <nav className="sidebar-nav">
-          {ALL_NAV_ITEMS.map((item) => {
-            const badge = getBadgeCount(item.id);
-            const active = activeView === item.id;
+        {/* ---------- PC tab plaques ---------- */}
+        <nav className="mb-tabs" aria-label="Navigation principale">
+          {MAIN_TABS.map((tab) => {
+            const active = currentTab?.id === tab.id;
+            const badge = tabBadge(tab);
             return (
               <button
-                key={item.id}
+                key={tab.id}
                 type="button"
-                className={`sidebar-btn ${active ? 'sidebar-btn--active' : ''}`}
-                onClick={() => handleNavigate(item.id)}
+                className={`mb-tab ${active ? 'mb-tab--active' : ''}`}
+                onClick={() => handleNavigate(tab.target)}
                 aria-current={active ? 'page' : undefined}
               >
-                {item.icon}
-                <span>{item.label}</span>
-                {badge > 0 && <span className="sidebar-btn__badge">{badge}</span>}
+                <span className="mb-tab__label">{tab.label}</span>
+                <span className="mb-tab__sub">{tab.sub}</span>
+                {badge > 0 && <span className="mb-tab__badge">{badge}</span>}
               </button>
             );
           })}
+          <div className="mb-tabs__extra">
+            {(['missions', 'settings'] as ActiveView[]).map((id) => {
+              const link = ALL_LINKS.find((l) => l.id === id)!;
+              const badge = getBadgeCount(id);
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  className={`mb-mini-tab ${activeView === id ? 'mb-mini-tab--active' : ''}`}
+                  onClick={() => handleNavigate(id)}
+                  title={link.label}
+                >
+                  {link.icon}
+                  <span>{link.label}</span>
+                  {badge > 0 && <span className="mb-tab__badge mb-tab__badge--mini">{badge}</span>}
+                </button>
+              );
+            })}
+          </div>
         </nav>
-      </aside>
 
-      {/* Main Content Column */}
-      <div className="app-main">
+        {/* ---------- Status plaque (name, level, XP, gold) ---------- */}
         <TopHud />
-        <main className="view-container">{children}</main>
+
+        {/* ---------- Sub navigation inside the current tab ---------- */}
+        {subLinks.length > 1 && (
+          <div className="mb-subnav" role="tablist" aria-label="Sections">
+            {subLinks.map((link) => {
+              const badge = getBadgeCount(link.id);
+              return (
+                <button
+                  key={link.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeView === link.id}
+                  className={`mb-subnav__btn ${activeView === link.id ? 'mb-subnav__btn--active' : ''}`}
+                  onClick={() => handleNavigate(link.id)}
+                >
+                  {link.icon}
+                  <span>{link.label}</span>
+                  {badge > 0 && <span className="mb-tab__badge mb-tab__badge--mini">{badge}</span>}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        <main className="view-container" key={activeView}>
+          {children}
+        </main>
       </div>
 
-      {/* Mobile Fixed Bottom Nav (< 1024px) */}
+      {/* ---------- Mobile bottom nav: 3 big tabs + menu ---------- */}
       <nav className="mobile-nav" aria-label="Navigation mobile">
-        {MOBILE_PRIMARY_VIEWS.map((viewId) => {
-          const item = ALL_NAV_ITEMS.find((i) => i.id === viewId)!;
-          const active = activeView === viewId && !drawerOpen;
+        {MAIN_TABS.map((tab) => {
+          const active = currentTab?.id === tab.id && !drawerOpen;
+          const badge = tabBadge(tab);
           return (
             <button
-              key={item.id}
+              key={tab.id}
               type="button"
               className={`mobile-nav__btn ${active ? 'mobile-nav__btn--active' : ''}`}
-              onClick={() => handleNavigate(item.id)}
+              onClick={() => handleNavigate(tab.target)}
               aria-current={active ? 'page' : undefined}
             >
-              {item.icon}
-              <span>{item.shortLabel}</span>
+              <strong>{tab.label}</strong>
+              <span>{tab.sub}</span>
+              {badge > 0 && <span className="mobile-nav__dot" aria-hidden="true" />}
             </button>
           );
         })}
-
         <button
           type="button"
-          className={`mobile-nav__btn ${drawerOpen || isDrawerViewActive ? 'mobile-nav__btn--active' : ''}`}
+          className={`mobile-nav__btn mobile-nav__btn--menu ${drawerOpen || !currentTab ? 'mobile-nav__btn--active' : ''}`}
           onClick={() => {
             soundEngine.play('click');
             setDrawerOpen((prev) => !prev);
           }}
           aria-expanded={drawerOpen}
+          aria-label="Plus de menus"
         >
-          {drawerOpen ? <X size={19} /> : <Menu size={19} />}
-          <span>Menu</span>
-          {drawerHasNotifications && <span className="mobile-nav__dot" aria-hidden="true" />}
+          {drawerOpen ? <X size={22} /> : <Menu size={22} />}
+          {claimableMissionsCount > 0 && <span className="mobile-nav__dot" aria-hidden="true" />}
         </button>
       </nav>
 
-      {/* Mobile Slide-Up Menu Drawer */}
       {drawerOpen && (
         <div
           className="mobile-drawer-backdrop"
           onClick={() => setDrawerOpen(false)}
           role="dialog"
           aria-modal="true"
-          aria-label="Menu du Dojo"
+          aria-label="Tous les menus"
         >
           <div className="mobile-drawer" onClick={(e) => e.stopPropagation()}>
             <div className="mobile-drawer__header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Flame size={20} color="var(--accent-flame)" />
-                <h3 style={{ fontSize: '1.15rem' }}>Menu du Dojo</h3>
-              </div>
+              <h3 className="mb-section-title">Tous les menus</h3>
               <button
                 type="button"
                 className="btn btn--sm"
@@ -184,40 +242,20 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 <X size={18} />
               </button>
             </div>
-
             <div className="mobile-drawer__grid">
-              {MOBILE_DRAWER_VIEWS.map((viewId) => {
-                const item = ALL_NAV_ITEMS.find((i) => i.id === viewId)!;
-                const badge = getBadgeCount(viewId);
-                const active = activeView === viewId;
+              {ALL_LINKS.map((link) => {
+                const badge = getBadgeCount(link.id);
+                const active = activeView === link.id;
                 return (
                   <button
-                    key={item.id}
+                    key={link.id}
                     type="button"
-                    className={`btn ${active ? 'btn--primary' : ''}`}
-                    style={{
-                      justifyContent: 'flex-start',
-                      padding: '10px 12px',
-                      minHeight: 48,
-                      fontSize: '0.9rem',
-                    }}
-                    onClick={() => handleNavigate(item.id)}
+                    className={`mb-drawer-link ${active ? 'mb-drawer-link--active' : ''}`}
+                    onClick={() => handleNavigate(link.id)}
                   >
-                    {item.icon}
-                    <span style={{ flex: 1, textAlign: 'left' }}>{item.shortLabel}</span>
-                    {badge > 0 && (
-                      <span
-                        className="badge"
-                        style={{
-                          background: '#ffd152',
-                          color: 'var(--ink-strong)',
-                          fontSize: '0.7rem',
-                          padding: '1px 6px',
-                        }}
-                      >
-                        {badge}
-                      </span>
-                    )}
+                    {link.icon}
+                    <span>{link.label}</span>
+                    {badge > 0 && <span className="mb-tab__badge mb-tab__badge--mini">{badge}</span>}
                   </button>
                 );
               })}

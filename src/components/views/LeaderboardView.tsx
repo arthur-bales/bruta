@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Trophy, Swords, RefreshCw, Zap, Crown } from 'lucide-react';
+import { Swords, RefreshCw, Crown } from 'lucide-react';
 import type { LeaderboardEntry } from '@shared/types';
 import { AI_HERO_POSES, resolveRivalSprite } from '@/engine/art/aiAssets';
+import { CoinPill, HeartHp, SectionCard } from '@/components/ui/BruteUI';
 import { apiClient } from '@/state/apiClient';
 import { useGame } from '@/state/GameContext';
 import { soundEngine } from '@/engine/audio/soundEffects';
@@ -18,7 +19,10 @@ export const LeaderboardView: React.FC = () => {
       const res = await apiClient.getLeaderboard();
       setEntries(res.entries);
     } catch (err) {
-      addToast(err instanceof Error ? err.message : 'Erreur lors du chargement du classement.', 'error');
+      addToast(
+        err instanceof Error ? err.message : 'Erreur lors du chargement du classement.',
+        'error',
+      );
     } finally {
       setLoading(false);
     }
@@ -49,129 +53,116 @@ export const LeaderboardView: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div className="view-header">
-        <div>
-          <h1 className="view-title">
-            <Trophy size={26} color="#d97706" />
-            Classement Mondial & Duels PvP
-          </h1>
-          <p className="view-subtitle">
-            Défie n’importe quel champion du classement dans un combat PvP asynchrone pour grimper en Elo !
-          </p>
-        </div>
+    <div className="lb-view">
+      <SectionCard
+        title="CLASSEMENT DE L'ARÈNE"
+        right={
+          <div className="arena-opps-right">
+            {myEntry && (
+              <span className="mb-tag mb-tag--orange" title="Ton classement actuel">
+                <Crown size={13} style={{ marginRight: 4 }} />#{myEntry.rank} • {myEntry.rating} Elo
+              </span>
+            )}
+            <CoinPill
+              kind="energy"
+              value={`⚡ ${fighter.energy}/${fighter.maxEnergy}`}
+              title="Énergie d'arène"
+              className="arena-energy-pill"
+            />
+            <button
+              type="button"
+              className="btn btn--sm"
+              disabled={loading}
+              onClick={() => {
+                soundEngine.play('click');
+                void loadLeaderboard();
+              }}
+            >
+              <RefreshCw size={14} />
+              Actualiser
+            </button>
+          </div>
+        }
+      >
+        <p className="mb-flavor" style={{ margin: '0 0 12px' }}>
+          Défie les champions du classement en duel PvP pour grimper dans l’arène !
+        </p>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          {myEntry && (
-            <span className="badge" style={{ background: '#ffd152', fontSize: '0.86rem', padding: '6px 12px' }}>
-              <Crown size={14} />
-              Ton Rang : #{myEntry.rank} ({myEntry.rating} Elo)
-            </span>
-          )}
-          <span className="badge" style={{ background: '#ffedd5', fontSize: '0.86rem', padding: '6px 12px' }}>
-            <Zap size={14} color="#ea580c" />
-            {fighter.energy}/{fighter.maxEnergy}
-          </span>
-          <button
-            type="button"
-            className="btn btn--sm"
-            disabled={loading}
-            onClick={() => {
-              soundEngine.play('click');
-              void loadLeaderboard();
-            }}
-          >
-            <RefreshCw size={15} />
-            Actualiser
-          </button>
-        </div>
-      </div>
+        {loading ? (
+          <div className="lb-empty">Chargement des champions du classement…</div>
+        ) : entries.length === 0 ? (
+          <div className="lb-empty">Aucun combattant classé pour le moment.</div>
+        ) : (
+          <div className="lb-list">
+            {entries.map((entry) => {
+              const isMe = entry.playerId === fighter.id;
+              const portraitUrl = isMe
+                ? AI_HERO_POSES.idle
+                : resolveRivalSprite(`${entry.playerId} ${entry.name}`).url;
 
-      {loading ? (
-        <div className="comic-card card-pad" style={{ textAlign: 'center', fontWeight: 800 }}>
-          Chargement des champions du classement…
-        </div>
-      ) : entries.length === 0 ? (
-        <div className="comic-card card-pad" style={{ textAlign: 'center', fontWeight: 800 }}>
-          Aucun combattant classé pour le moment.
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {entries.map((entry) => {
-            const isMe = entry.playerId === fighter.id;
-            const portraitUrl = isMe
-              ? AI_HERO_POSES.idle
-              : resolveRivalSprite(entry.playerId + ' ' + entry.name).url;
-            const medalClass =
-              entry.rank === 1
-                ? 'rank-medal--1'
-                : entry.rank === 2
-                  ? 'rank-medal--2'
-                  : entry.rank === 3
-                    ? 'rank-medal--3'
-                    : '';
+              const rankTierClass =
+                entry.rank === 1
+                  ? 'lb-rank--1'
+                  : entry.rank === 2
+                    ? 'lb-rank--2'
+                    : entry.rank === 3
+                      ? 'lb-rank--3'
+                      : '';
+              const rowTopClass =
+                entry.rank === 1
+                  ? 'lb-row--top1'
+                  : entry.rank === 2
+                    ? 'lb-row--top2'
+                    : entry.rank === 3
+                      ? 'lb-row--top3'
+                      : '';
 
-            return (
-              <div
-                key={entry.playerId}
-                className={`leaderboard-row ${isMe ? 'leaderboard-row--me' : ''}`}
-                style={{ flexWrap: 'wrap' }}
-              >
-                <div className={`rank-medal ${medalClass}`}>
-                  {entry.rank === 1 ? '🥇' : entry.rank === 2 ? '🥈' : entry.rank === 3 ? '🥉' : `#${entry.rank}`}
-                </div>
+              return (
+                <div
+                  key={entry.playerId}
+                  className={`lb-row ${rowTopClass} ${isMe ? 'lb-row--me' : ''}`}
+                >
+                  <div className={`lb-rank ${rankTierClass}`} aria-label={`Rang ${entry.rank}`}>
+                    #{entry.rank}
+                  </div>
 
-                <img
-                  src={portraitUrl}
-                  alt={entry.name}
-                  className="avatar-thumb"
-                  style={{ padding: 2, objectFit: 'contain' }}
-                />
+                  <img src={portraitUrl} alt={entry.name} className="lb-avatar" />
 
-                <div style={{ flex: 1, minWidth: 160 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                    <strong style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem' }}>
-                      {entry.name}
-                    </strong>
-                    {isMe && (
-                      <span className="badge" style={{ background: '#ffd152', fontSize: '0.7rem' }}>
-                        TOI
-                      </span>
+                  <div className="lb-info">
+                    <div className="lb-name-row">
+                      <strong className="lb-name">{entry.name}</strong>
+                      <span className="mb-tag">NIV. {entry.level}</span>
+                      {isMe && <span className="mb-tag mb-tag--orange">TOI</span>}
+                    </div>
+                    <div className="lb-sub">
+                      {entry.title} • {entry.wins}V / {entry.losses}D
+                    </div>
+                  </div>
+
+                  <div className="lb-stats">
+                    <div title={`Puissance : ${entry.powerScore}`}>
+                      <HeartHp hp={entry.powerScore} label="puissance" hideLabel />
+                    </div>
+                    <span className="lb-elo-pill">🏆 {entry.rating} Elo</span>
+
+                    {!isMe && (
+                      <button
+                        type="button"
+                        className="btn btn--primary btn--sm"
+                        disabled={challengingId !== null || fighter.energy <= 0}
+                        onClick={() => void handleChallenge(entry)}
+                      >
+                        <Swords size={15} />
+                        {challengingId === entry.playerId ? 'DUEL…' : 'DÉFIER'}
+                      </button>
                     )}
-                    <span className="badge" style={{ background: '#e0f2fe', fontSize: '0.72rem' }}>
-                      Niv.{entry.level}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--ink-muted)' }}>
-                    {entry.title} • {entry.wins}V / {entry.losses}D
                   </div>
                 </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                  <span className="badge" style={{ background: '#fff3d6', fontSize: '0.8rem' }}>
-                    🏆 {entry.rating} Elo
-                  </span>
-                  <span className="badge" style={{ background: '#f5ebd4', fontSize: '0.8rem' }}>
-                    ⚔️ {entry.powerScore}
-                  </span>
-
-                  {!isMe && (
-                    <button
-                      type="button"
-                      className="btn btn--sm btn--primary"
-                      disabled={challengingId !== null || fighter.energy <= 0}
-                      onClick={() => void handleChallenge(entry)}
-                    >
-                      <Swords size={15} />
-                      {challengingId === entry.playerId ? 'Duel…' : 'Défier (PvP)'}
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </SectionCard>
     </div>
   );
 };

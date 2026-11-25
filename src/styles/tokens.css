@@ -1,63 +1,81 @@
 /* ============================================================================
-   BRUTE LEGENDS — Chibi Anime Arena Design Tokens
-   Warm sunlit parchment, cel-shaded ink borders, tactile arcade energy
+   BRUTE LEGENDS — "Arène Parchemin" Design Tokens (My Brute-inspired)
+   Cream parchment pages, brown ink outlines, chunky carved titles,
+   segmented olive/yellow stat cells and big orange action buttons.
    ============================================================================ */
 
 :root {
   /* Surfaces */
-  --bg-canvas: #efe5cf;
-  --bg-parchment: #fdf8ec;
-  --bg-parchment-alt: #f5ebd4;
-  --bg-panel: #fffdf7;
-  --bg-wood: #5e3824;
-  --bg-wood-dark: #432516;
-  --bg-wood-light: #7c4b30;
+  --bg-canvas: #e9cf9a;
+  --bg-page: #fbf1cf;
+  --bg-parchment: #fdf6dc;
+  --bg-parchment-alt: #f6e7bd;
+  --bg-panel: #fffaea;
+  --bg-panel-sunk: #f3e3b6;
+  --bg-wood: #8a4b2a;
+  --bg-wood-dark: #5a2f19;
+  --bg-wood-light: #a8653c;
+  --bg-arena-dark: #3b2a1e;
 
-  /* Ink & Borders */
-  --ink-strong: #231917;
-  --ink-body: #3c2e28;
-  --ink-muted: #766456;
-  --border-ink: 3px solid #231917;
-  --border-ink-thin: 2px solid #231917;
+  /* Ink & Borders (brown, never pure black) */
+  --ink-strong: #4a2a16;
+  --ink-body: #5b3a24;
+  --ink-muted: #9a7656;
+  --ink-title: #8b4a2b;
+  --line-soft: #c9a77a;
+  --border-ink: 3px solid #6b3f22;
+  --border-ink-thin: 2px solid #6b3f22;
+  --border-soft: 2px solid #d6b98c;
 
   /* Brand & Action Accents */
-  --accent-flame: #ef5b36;
-  --accent-flame-dark: #c93d1c;
-  --accent-gold: #f5b025;
-  --accent-gold-dark: #c77e08;
-  --accent-sky: #2d8cf0;
-  --accent-sky-dark: #1964b8;
-  --accent-jade: #22a06b;
-  --accent-jade-dark: #14754c;
-  --accent-crimson: #dc2626;
-  --accent-gem: #0ea5e9;
-  --accent-energy: #f97316;
+  --accent-flame: #f08a1c;
+  --accent-flame-dark: #c4600a;
+  --accent-gold: #f2c21b;
+  --accent-gold-dark: #b58a06;
+  --accent-sky: #3f8fd2;
+  --accent-sky-dark: #2a6aa3;
+  --accent-jade: #5f9e2f;
+  --accent-jade-dark: #417220;
+  --accent-crimson: #d0412a;
+  --accent-gem: #3aa6c9;
+  --accent-energy: #f08a1c;
+  --accent-heart: #f26b1d;
+
+  /* Segmented stat cells */
+  --cell-on: #e6d21f;
+  --cell-on-hi: #f7ea6a;
+  --cell-on-border: #5c5212;
+  --cell-off: #f6edc6;
+  --cell-off-border: #cdb98a;
 
   /* Rarity Colors */
-  --rarity-common: #64748b;
-  --rarity-rare: #1d72c9;
-  --rarity-epic: #9b30c9;
-  --rarity-legendary: #d97706;
-  --rarity-mythic: #dc2626;
+  --rarity-common: #8a7a66;
+  --rarity-rare: #2f7fc4;
+  --rarity-epic: #9440c0;
+  --rarity-legendary: #d9850b;
+  --rarity-mythic: #d23a2a;
 
   /* Typography */
-  --font-display: 'Fredoka', system-ui, -apple-system, sans-serif;
+  --font-display: 'Luckiest Guy', 'Lilita One', system-ui, sans-serif;
+  --font-title: 'Lilita One', 'Luckiest Guy', system-ui, sans-serif;
   --font-body: 'Nunito', system-ui, -apple-system, sans-serif;
 
-  /* Elevation / Comic Shadows */
-  --shadow-comic: 0 4px 0 #231917;
-  --shadow-comic-sm: 0 3px 0 #231917;
-  --shadow-comic-lg: 0 6px 0 #231917;
-  --shadow-soft: 0 10px 24px rgba(35, 25, 23, 0.14);
+  /* Elevation */
+  --shadow-comic: 0 4px 0 #6b3f22;
+  --shadow-comic-sm: 0 3px 0 #6b3f22;
+  --shadow-comic-lg: 0 6px 0 #6b3f22;
+  --shadow-soft: 0 10px 24px rgba(74, 42, 22, 0.18);
+  --shadow-inset: inset 0 2px 0 rgba(255, 255, 255, 0.6), inset 0 -3px 0 rgba(107, 63, 34, 0.12);
 
   /* Radii */
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 22px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
   --radius-pill: 999px;
 
   /* Layout Dimensions */
-  --sidebar-width: 248px;
-  --topbar-height: 66px;
-  --mobile-nav-height: 68px;
+  --page-max: 1080px;
+  --sidebar-width: 0px;
+  --topbar-height: 64px;
+  --mobile-nav-height: 74px;
 }
