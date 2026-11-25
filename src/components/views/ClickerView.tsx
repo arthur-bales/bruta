@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Coins, Flame, Hand, Settings, Star, Zap } from 'lucide-react';
+import { Coins, Flame, Settings, Star, Zap } from 'lucide-react';
+import type { UpgradeCategory } from '@shared/types';
 import { UPGRADES_CATALOG, getUpgradeCost } from '@shared/upgradesCatalog';
 import { PhaserCanvas } from '@/components/phaser/PhaserCanvas';
 import {
@@ -12,6 +13,8 @@ import { GameIcon, resolveUpgradeIconName } from '@/components/ui/GameIcon';
 import { soundEngine } from '@/engine/audio/soundEffects';
 import { useGame } from '@/state/GameContext';
 
+type UpgradeFilter = 'all' | UpgradeCategory;
+
 export const ClickerView: React.FC = () => {
   const {
     fighter,
@@ -20,25 +23,23 @@ export const ClickerView: React.FC = () => {
     optimisticClicks,
     registerClickStrike,
     buyUpgrade,
-    setActiveView,
     addToast,
   } = useGame();
 
   const [combo, setCombo] = useState(0);
   const [feverProgress, setFeverProgress] = useState(0);
   const [isFever, setIsFever] = useState(false);
-  const [strikeNonce, setStrikeNonce] = useState(0);
   const [lastFeedback, setLastFeedback] = useState<string>(
-    'Frappe le mannequin pour gagner de l’or et activer la Fièvre !',
+    'Clique ou tape directement sur le mannequin pour frapper !',
   );
+  const [filter, setFilter] = useState<UpgradeFilter>('all');
   const [buyingId, setBuyingId] = useState<string | null>(null);
   const comboTimerRef = useRef<number | null>(null);
 
-  const quickUpgrades = useMemo(() => {
-    const clickUps = UPGRADES_CATALOG.filter((u) => u.category === 'click').slice(0, 3);
-    const autoUps = UPGRADES_CATALOG.filter((u) => u.category === 'auto').slice(0, 3);
-    return [...clickUps, ...autoUps];
-  }, []);
+  const visibleUpgrades = useMemo(() => {
+    if (filter === 'all') return UPGRADES_CATALOG;
+    return UPGRADES_CATALOG.filter((u) => u.category === filter);
+  }, [filter]);
 
   if (!fighter || !clickMetrics) return null;
 
@@ -74,11 +75,7 @@ export const ClickerView: React.FC = () => {
     }
   };
 
-  const handleBackupTap = () => {
-    setStrikeNonce((n) => n + 1);
-  };
-
-  const handleQuickBuy = async (upgradeId: string) => {
+  const handleBuy = async (upgradeId: string) => {
     setBuyingId(upgradeId);
     try {
       await buyUpgrade(upgradeId);
@@ -92,157 +89,160 @@ export const ClickerView: React.FC = () => {
   const totalStrikes = fighter.progress.totalClicks + optimisticClicks;
 
   return (
-    <div className="mb-stack">
-      {/* Compact Dojo Metrics Strip */}
-      <div className="dojo-metrics">
-        <div className="dojo-metric-tile">
-          <span>Or / Clic</span>
-          <strong style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-            <Coins size={15} color="#c9820a" />+{clickMetrics.goldPerClick}
-          </strong>
+    <div className="dojo-layout">
+      {/* LEFT COLUMN: Metrics + Directly Clickable Phaser Dojo Stage */}
+      <div className="dojo-left-col">
+        <div className="dojo-metrics">
+          <div className="dojo-metric-tile">
+            <span>Or / Clic</span>
+            <strong style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+              <Coins size={15} color="#c9820a" />+{clickMetrics.goldPerClick}
+            </strong>
+          </div>
+          <div className="dojo-metric-tile">
+            <span>XP / Clic</span>
+            <strong style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+              <Star size={15} fill="#f2c21b" color="#8b4a2b" />+{clickMetrics.xpPerClick}
+            </strong>
+          </div>
+          <div className="dojo-metric-tile">
+            <span>Auto Or / s</span>
+            <strong style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+              <Settings size={15} color="#6b3f22" />
+              {clickMetrics.autoGoldPerSec}/s
+            </strong>
+          </div>
+          <div className="dojo-metric-tile">
+            <span>Critique Clic</span>
+            <strong style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+              <GameIcon name="fire_rage" size={16} />
+              {Math.round(clickMetrics.clickCritChance * 100)}%
+            </strong>
+          </div>
         </div>
-        <div className="dojo-metric-tile">
-          <span>XP / Clic</span>
-          <strong style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-            <Star size={15} fill="#f2c21b" color="#8b4a2b" />+{clickMetrics.xpPerClick}
-          </strong>
-        </div>
-        <div className="dojo-metric-tile">
-          <span>Auto Or / s</span>
-          <strong style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-            <Settings size={15} color="#6b3f22" />
-            {clickMetrics.autoGoldPerSec}/s
-          </strong>
-        </div>
-        <div className="dojo-metric-tile">
-          <span>Critique Clic</span>
-          <strong style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-            <GameIcon name="fire_rage" size={16} />
-            {Math.round(clickMetrics.clickCritChance * 100)}%
-          </strong>
-        </div>
-      </div>
 
-      {/* Main Dojo Clicker Stage Card */}
-      <SectionCard
-        title="Dojo d’Entraînement"
-        right={
-          <span className="mb-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-            <GameIcon name="fist" size={15} />
-            {formatCompact(totalStrikes)} frappes
-          </span>
-        }
-      >
-        <div className="mb-stack">
-          {/* Warm Parchment Fever Meter */}
-          <div className={`dojo-fever-bar ${isFever ? 'dojo-fever-bar--active' : ''}`}>
-            <div className="dojo-fever-bar__top">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Flame size={18} color={isFever ? '#d0412a' : '#e2700c'} />
-                <span className="mb-caption">
-                  {isFever ? 'MODE FIÈVRE ACTIF (Or & XP x2) !' : 'Jauge de Fièvre'}
-                </span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+        <SectionCard
+          title="Dojo d’Entraînement"
+          right={
+            <span className="mb-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              <GameIcon name="fist" size={15} />
+              {formatCompact(totalStrikes)} frappes
+            </span>
+          }
+        >
+          <div className="mb-stack mb-stack--sm">
+            {/* Warm Parchment Fever Meter */}
+            <div className={`dojo-fever-bar ${isFever ? 'dojo-fever-bar--active' : ''}`}>
+              <div className="dojo-fever-bar__top">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Flame size={17} color={isFever ? '#d0412a' : '#e2700c'} />
+                  <span className="mb-caption">
+                    {isFever ? 'MODE FIÈVRE ACTIF (Or & XP x2) !' : 'Jauge de Fièvre'}
+                  </span>
+                </div>
                 <span className={`mb-tag ${combo >= 10 ? 'mb-tag--orange' : ''}`}>
                   <Zap size={12} style={{ marginRight: 3 }} />
                   Combo x{combo}
                 </span>
-                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--ink-muted)' }}>
-                  {lastFeedback}
+              </div>
+
+              <div className="meter" style={{ height: 18 }}>
+                <div
+                  className="meter__fill meter__fill--fever"
+                  style={{ width: `${isFever ? 100 : feverProgress}%` }}
+                />
+                <span className="meter__label">
+                  {isFever ? 'FIÈVRE x2 !' : `${feverProgress}%`}
                 </span>
               </div>
             </div>
 
-            <div className="meter" style={{ height: 20 }}>
-              <div
-                className="meter__fill meter__fill--fever"
-                style={{ width: `${isFever ? 100 : feverProgress}%` }}
+            {/* Directly Clickable Phaser Clicker Stage (no redundant button below) */}
+            <div className="dojo-stage-frame" title="Clique sur le mannequin pour frapper !">
+              <PhaserCanvas
+                mode="clicker"
+                arena="dojo"
+                fighter={{
+                  appearance: fighter.appearance,
+                  equipped: fighter.equipped,
+                  equippedSkinId: fighter.equippedSkinId,
+                }}
+                clickerMetrics={{
+                  clickDamage: clickMetrics.clickDamage,
+                  goldPerClick: clickMetrics.goldPerClick,
+                  clickCritChance: clickMetrics.clickCritChance,
+                  autoGoldPerSec: clickMetrics.autoGoldPerSec,
+                }}
+                onClickerStrike={handlePhaserStrike}
               />
-              <span className="meter__label">
-                {isFever ? 'FIÈVRE x2 !' : `${feverProgress}%`}
-              </span>
             </div>
+
+            <div className="dojo-hint-bar">{lastFeedback}</div>
+          </div>
+        </SectionCard>
+      </div>
+
+      {/* RIGHT COLUMN: All 12 Purchasable Dojo Upgrades */}
+      <div className="dojo-right-col">
+        <SectionCard
+          title="Améliorations du Dojo"
+          right={<span className="mb-tag">{UPGRADES_CATALOG.length} disponibles</span>}
+        >
+          <div className="dojo-upgrade-filters">
+            {(
+              [
+                { id: 'all', label: 'Toutes' },
+                { id: 'click', label: 'Clic' },
+                { id: 'auto', label: 'Auto' },
+                { id: 'dojo', label: 'Dojo' },
+              ] as const
+            ).map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                className={`cell-mini-pill ${filter === tab.id ? 'cell-mini-pill--active' : ''}`}
+                onClick={() => {
+                  soundEngine.play('click');
+                  setFilter(tab.id);
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
 
-          {/* Dark-Brown Interactive Phaser Clicker Stage */}
-          <div className="dojo-stage-frame">
-            <PhaserCanvas
-              mode="clicker"
-              arena="dojo"
-              fighter={{ appearance: fighter.appearance, equipped: fighter.equipped, equippedSkinId: fighter.equippedSkinId }}
-              clickerMetrics={{
-                clickDamage: clickMetrics.clickDamage,
-                goldPerClick: clickMetrics.goldPerClick,
-                clickCritChance: clickMetrics.clickCritChance,
-                autoGoldPerSec: clickMetrics.autoGoldPerSec,
-              }}
-              clickerStrikeNonce={strikeNonce}
-              onClickerStrike={handlePhaserStrike}
-            />
+          <div className="dojo-upgrades-list">
+            {visibleUpgrades.map((upg) => {
+              const currentLvl = fighter.upgrades[upg.id] ?? 0;
+              const isMax = currentLvl >= upg.maxLevel;
+              const cost = getUpgradeCost(upg, currentLvl);
+              const canAfford = effectiveGold >= cost;
+
+              return (
+                <MbRow
+                  key={upg.id}
+                  icon={<GameIcon name={resolveUpgradeIconName(upg.id)} size={30} />}
+                  title={upg.name}
+                  level={`Niv.${currentLvl}/${upg.maxLevel}`}
+                  desc={upg.effectLabel}
+                  right={
+                    isMax ? (
+                      <span className="mb-tag mb-tag--olive">MAX ✓</span>
+                    ) : (
+                      <PriceButton
+                        cost={cost}
+                        disabled={!canAfford || buyingId === upg.id}
+                        onClick={() => void handleBuy(upg.id)}
+                        title={`Améliorer ${upg.name} pour ${cost} Or`}
+                      />
+                    )
+                  }
+                />
+              );
+            })}
           </div>
-
-          {/* Giant Orange Tactile CTA Button */}
-          <button
-            type="button"
-            className={`btn btn--mega ${isFever ? 'btn--danger' : 'btn--primary'}`}
-            onClick={handleBackupTap}
-          >
-            <Hand size={24} />
-            {isFever
-              ? 'FRAPPER EN FIÈVRE ! (x2)'
-              : `FRAPPER LE MANNEQUIN ! (+${clickMetrics.goldPerClick} Or)`}
-          </button>
-        </div>
-      </SectionCard>
-
-      {/* Quick Dojo Upgrades List (MbRow + PriceButton) */}
-      <SectionCard
-        title="Améliorations Rapides"
-        right={
-          <button
-            type="button"
-            className="cell-mini-pill"
-            onClick={() => {
-              soundEngine.play('click');
-              setActiveView('upgrades');
-            }}
-          >
-            Toutes (12) →
-          </button>
-        }
-      >
-        <div className="mb-stack mb-stack--sm">
-          {quickUpgrades.map((upg) => {
-            const currentLvl = fighter.upgrades[upg.id] ?? 0;
-            const isMax = currentLvl >= upg.maxLevel;
-            const cost = getUpgradeCost(upg, currentLvl);
-            const canAfford = effectiveGold >= cost;
-
-            return (
-              <MbRow
-                key={upg.id}
-                icon={<GameIcon name={resolveUpgradeIconName(upg.id)} size={32} />}
-                title={upg.name}
-                level={`Niv.${currentLvl}/${upg.maxLevel}`}
-                desc={upg.effectLabel}
-                right={
-                  isMax ? (
-                    <span className="mb-tag mb-tag--olive">MAX</span>
-                  ) : (
-                    <PriceButton
-                      cost={cost}
-                      disabled={!canAfford || buyingId === upg.id}
-                      onClick={() => void handleQuickBuy(upg.id)}
-                      title={`Améliorer ${upg.name} pour ${cost} Or`}
-                    />
-                  )
-                }
-              />
-            );
-          })}
-        </div>
-      </SectionCard>
+        </SectionCard>
+      </div>
     </div>
   );
 };

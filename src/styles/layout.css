@@ -140,13 +140,13 @@
 
 .mb-tab {
   position: relative;
-  flex: 0 1 148px;
-  min-width: 112px;
+  flex: 0 1 128px;
+  min-width: 94px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 5px 10px;
+  padding: 5px 8px;
   min-height: 46px;
   border: var(--border-ink);
   border-radius: 12px;
@@ -477,7 +477,7 @@
   }
 }
 
-/* ---------------- Mobile bottom nav: 3 big tabs + menu ---------------- */
+/* ---------------- Mobile bottom nav: 4 big tabs + menu ---------------- */
 .mobile-nav {
   position: fixed;
   left: 0;
@@ -485,9 +485,9 @@
   bottom: 0;
   z-index: 40;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 52px;
-  gap: 6px;
-  padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
+  grid-template-columns: repeat(4, 1fr) 46px;
+  gap: 5px;
+  padding: 7px 6px calc(7px + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(180deg, #a8653c 0%, #7a4426 100%);
   border-top: 3px solid #4a2a16;
   box-shadow: 0 -4px 14px rgba(74, 42, 22, 0.25);
@@ -505,7 +505,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 56px;
+  min-height: 54px;
   padding: 4px 2px;
   border: 3px solid #4a2a16;
   border-radius: 10px;
@@ -524,13 +524,13 @@
 .mobile-nav__btn strong {
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: 1.05rem;
-  letter-spacing: 0.04em;
+  font-size: 0.92rem;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 
 .mobile-nav__btn span {
-  font-size: 0.7rem;
+  font-size: 0.64rem;
   font-weight: 800;
   opacity: 0.85;
 }

@@ -22,7 +22,7 @@ import { TopHud } from './TopHud';
 
 /** The three big "My Brute" tabs. Each one groups several views. */
 interface MainTab {
-  id: 'cellule' | 'arene' | 'arsenal';
+  id: 'cellule' | 'dojo' | 'arene' | 'arsenal';
   label: string;
   sub: string;
   target: ActiveView;
@@ -33,9 +33,16 @@ const MAIN_TABS: MainTab[] = [
   {
     id: 'cellule',
     label: 'Cellule',
-    sub: 'Entraînement',
+    sub: 'Ma Brute',
     target: 'home',
-    views: ['home', 'profile', 'clicker', 'upgrades'],
+    views: ['home', 'profile'],
+  },
+  {
+    id: 'dojo',
+    label: 'Dojo',
+    sub: 'Entraînement',
+    target: 'clicker',
+    views: ['clicker'],
   },
   {
     id: 'arene',
