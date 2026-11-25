@@ -113,7 +113,8 @@ export interface GameContextValue {
   }) => void;
   flushClicks: () => Promise<void>;
   updateSettings: (settings: Partial<PlayerSettings>) => Promise<void>;
-  importSave: (fighterData: FighterProfile) => Promise<void>;
+  buySkin: (skinId: string) => Promise<void>;
+  equipSkin: (skinId: string) => Promise<void>;
   resetFighter: () => Promise<void>;
   startArenaBattle: (opponentId: string) => Promise<BattleResult>;
   startPvpBattle: (targetPlayerId: string) => Promise<BattleResult>;
@@ -431,12 +432,22 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [],
   );
 
-  const importSave = useCallback(
-    async (fighterData: FighterProfile) => {
-      const res = await apiClient.importSave(fighterData);
+  const buySkin = useCallback(
+    async (skinId: string) => {
+      const res = await apiClient.buySkin(skinId);
       setFighter(res.fighter);
       soundEngine.play('level_up');
-      addToast('Sauvegarde importée avec succès !', 'success');
+      addToast('Nouveau skin débloqué et équipé !', 'gold');
+    },
+    [addToast],
+  );
+
+  const equipSkin = useCallback(
+    async (skinId: string) => {
+      const res = await apiClient.equipSkin(skinId);
+      setFighter(res.fighter);
+      soundEngine.play('equip');
+      addToast('Skin équipé !', 'success');
     },
     [addToast],
   );
@@ -612,7 +623,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     registerClickStrike,
     flushClicks: () => flushClicks(false),
     updateSettings,
-    importSave,
+    buySkin,
+    equipSkin,
     resetFighter,
     startArenaBattle,
     startPvpBattle,

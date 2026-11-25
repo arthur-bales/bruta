@@ -1,13 +1,6 @@
 import React, { useState } from 'react';
-import { Dices, Sparkles, Play, Check } from 'lucide-react';
-import type { AnimationName, FighterAppearance } from '@shared/types';
-import {
-  EYE_STYLES,
-  HAIR_PALETTE,
-  HAIR_STYLES,
-  OUTFIT_PALETTE,
-  SKIN_PALETTE,
-} from '@shared/constants';
+import { Dices, Sparkles, Play, Swords } from 'lucide-react';
+import type { AnimationName } from '@shared/types';
 import { PhaserCanvas } from '@/components/phaser/PhaserCanvas';
 import { useGame } from '@/state/GameContext';
 import { soundEngine } from '@/engine/audio/soundEffects';
@@ -36,33 +29,20 @@ const RANDOM_WAR_CRIES = [
   'Tu vas mordre la poussière !',
 ];
 
-const EYE_COLORS = ['#2563eb', '#dc2626', '#10b981', '#d97706', '#7c3aed', '#1e293b'];
-
 export const CharacterCreationModal: React.FC = () => {
   const { fighter, showCreationModal, setShowCreationModal, customizeFighter, addToast } = useGame();
 
   const [name, setName] = useState<string>(fighter?.name || 'Brute');
-  const [appearance, setAppearance] = useState<FighterAppearance>(
-    fighter?.appearance ?? {
-      skinColor: SKIN_PALETTE[1],
-      hairStyle: 'spiky',
-      hairColor: HAIR_PALETTE[0],
-      eyeStyle: 'determined',
-      eyeColor: EYE_COLORS[0],
-      outfitPrimary: OUTFIT_PALETTE[0].primary,
-      outfitSecondary: OUTFIT_PALETTE[0].secondary,
-      warCry: 'En garde !',
-    },
-  );
+  const [warCry, setWarCry] = useState<string>(fighter?.appearance.warCry || 'En garde !');
   const [previewAnim, setPreviewAnim] = useState<{ anim: AnimationName; nonce: number } | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   React.useEffect(() => {
     if (showCreationModal && fighter) {
       setName(fighter.name || 'Brute');
-      setAppearance({ ...fighter.appearance });
+      setWarCry(fighter.appearance.warCry || 'En garde !');
     }
-  }, [showCreationModal, fighter?.id, fighter?.name]);
+  }, [showCreationModal, fighter?.id, fighter?.name, fighter?.appearance.warCry]);
 
   if (!showCreationModal || !fighter) return null;
 
@@ -73,18 +53,8 @@ export const CharacterCreationModal: React.FC = () => {
   const handleRandomize = () => {
     soundEngine.play('click');
     const rand = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
-    const outfit = rand(OUTFIT_PALETTE);
     setName(rand(RANDOM_NAMES) + Math.floor(10 + Math.random() * 89));
-    setAppearance({
-      skinColor: rand(SKIN_PALETTE),
-      hairStyle: rand(HAIR_STYLES).id,
-      hairColor: rand(HAIR_PALETTE),
-      eyeStyle: rand(EYE_STYLES).id,
-      eyeColor: rand(EYE_COLORS),
-      outfitPrimary: outfit.primary,
-      outfitSecondary: outfit.secondary,
-      warCry: rand(RANDOM_WAR_CRIES),
-    });
+    setWarCry(rand(RANDOM_WAR_CRIES));
     triggerPreview('victory');
   };
 
@@ -100,8 +70,8 @@ export const CharacterCreationModal: React.FC = () => {
       await customizeFighter({
         name: cleanName.slice(0, 20),
         appearance: {
-          ...appearance,
-          warCry: appearance.warCry.trim() || 'En garde !',
+          ...fighter.appearance,
+          warCry: warCry.trim() || 'En garde !',
         },
       });
       setShowCreationModal(false);
@@ -114,7 +84,7 @@ export const CharacterCreationModal: React.FC = () => {
 
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Créer ton combattant">
-      <div className="modal-box" style={{ maxWidth: 860 }}>
+      <div className="modal-box" style={{ maxWidth: 680 }}>
         <div
           style={{
             display: 'flex',
@@ -126,45 +96,32 @@ export const CharacterCreationModal: React.FC = () => {
           }}
         >
           <div>
-            <h2 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <h2 style={{ fontSize: '1.45rem', display: 'flex', alignItems: 'center', gap: 8 }}>
               <Sparkles size={22} color="var(--accent-flame)" />
-              Crée ta Légende Chibi !
+              Crée ta Légende !
             </h2>
             <p className="view-subtitle">
-              Personnalise ton héros avant d’entrer dans le Colisée. Tu pourras tout modifier plus tard !
+              Baptise ton combattant avant d’entrer dans le Colisée. Débloque de nouveaux skins en Boutique !
             </p>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              type="button"
-              className="btn btn--gold btn--sm"
-              onClick={handleRandomize}
-            >
-              <Dices size={16} />
-              Aléatoire !
-            </button>
-            <button
-              type="button"
-              className="btn btn--sm"
-              onClick={() => {
-                soundEngine.play('click');
-                setShowCreationModal(false);
-              }}
-            >
-              <Play size={15} />
-              Jouer direct
-            </button>
-          </div>
+          <button
+            type="button"
+            className="btn btn--gold btn--sm"
+            onClick={handleRandomize}
+          >
+            <Dices size={16} />
+            Aléatoire
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="grid-2" style={{ alignItems: 'start' }}>
-          {/* Left: Live Phaser Chibi Stage */}
+        <form onSubmit={handleSubmit} className="grid-2" style={{ alignItems: 'center' }}>
+          {/* Left: Live Phaser Showcase */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div className="stage-frame stage-frame--hero">
               <PhaserCanvas
                 mode="showcase"
                 arena="coliseum"
-                fighter={{ appearance, equipped: fighter.equipped }}
+                fighter={{ appearance: fighter.appearance, equipped: fighter.equipped }}
                 previewAnim={previewAnim}
               />
             </div>
@@ -193,8 +150,8 @@ export const CharacterCreationModal: React.FC = () => {
             </div>
           </div>
 
-          {/* Right: Customization Controls */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Right: Fast Identity Form */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div>
               <label
                 htmlFor="creator-name"
@@ -225,154 +182,35 @@ export const CharacterCreationModal: React.FC = () => {
                 type="text"
                 className="comic-input"
                 maxLength={48}
-                value={appearance.warCry}
-                onChange={(e) => setAppearance((p) => ({ ...p, warCry: e.target.value }))}
+                value={warCry}
+                onChange={(e) => setWarCry(e.target.value)}
                 placeholder="En garde !"
               />
             </div>
 
-            <div>
-              <div style={{ fontWeight: 800, fontSize: '0.84rem', marginBottom: 5 }}>Teint de peau</div>
-              <div className="swatch-row">
-                {SKIN_PALETTE.map((hex) => (
-                  <button
-                    key={hex}
-                    type="button"
-                    aria-label={`Peau ${hex}`}
-                    className={`swatch-btn ${appearance.skinColor === hex ? 'swatch-btn--active' : ''}`}
-                    style={{ backgroundColor: hex }}
-                    onClick={() => setAppearance((p) => ({ ...p, skinColor: hex }))}
-                  />
-                ))}
-              </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+              <button
+                type="submit"
+                className="btn btn--primary btn--lg"
+                disabled={submitting}
+                style={{ width: '100%' }}
+              >
+                <Swords size={20} />
+                {submitting ? 'Préparation…' : "ENTRER DANS L'ARÈNE !"}
+              </button>
+              <button
+                type="button"
+                className="btn btn--sm"
+                style={{ width: '100%' }}
+                onClick={() => {
+                  soundEngine.play('click');
+                  setShowCreationModal(false);
+                }}
+              >
+                <Play size={15} />
+                JOUER DIRECT
+              </button>
             </div>
-
-            <div>
-              <div style={{ fontWeight: 800, fontSize: '0.84rem', marginBottom: 5 }}>Coiffure</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {HAIR_STYLES.map((style) => (
-                  <button
-                    key={style.id}
-                    type="button"
-                    className={`tab-btn ${appearance.hairStyle === style.id ? 'tab-btn--active' : ''}`}
-                    style={{ minHeight: 34, padding: '4px 10px', fontSize: '0.78rem' }}
-                    onClick={() => setAppearance((p) => ({ ...p, hairStyle: style.id }))}
-                  >
-                    {style.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <div style={{ fontWeight: 800, fontSize: '0.84rem', marginBottom: 5 }}>
-                Couleur de cheveux
-              </div>
-              <div className="swatch-row">
-                {HAIR_PALETTE.map((hex) => (
-                  <button
-                    key={hex}
-                    type="button"
-                    aria-label={`Cheveux ${hex}`}
-                    className={`swatch-btn ${appearance.hairColor === hex ? 'swatch-btn--active' : ''}`}
-                    style={{ backgroundColor: hex }}
-                    onClick={() => setAppearance((p) => ({ ...p, hairColor: hex }))}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="grid-2-equal" style={{ gap: 10 }}>
-              <div>
-                <div style={{ fontWeight: 800, fontSize: '0.84rem', marginBottom: 5 }}>Regard</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                  {EYE_STYLES.map((eye) => (
-                    <button
-                      key={eye.id}
-                      type="button"
-                      className={`tab-btn ${appearance.eyeStyle === eye.id ? 'tab-btn--active' : ''}`}
-                      style={{ minHeight: 32, padding: '3px 9px', fontSize: '0.76rem' }}
-                      onClick={() => setAppearance((p) => ({ ...p, eyeStyle: eye.id }))}
-                    >
-                      {eye.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <div style={{ fontWeight: 800, fontSize: '0.84rem', marginBottom: 5 }}>
-                  Couleur des yeux
-                </div>
-                <div className="swatch-row">
-                  {EYE_COLORS.map((hex) => (
-                    <button
-                      key={hex}
-                      type="button"
-                      aria-label={`Yeux ${hex}`}
-                      className={`swatch-btn ${appearance.eyeColor === hex ? 'swatch-btn--active' : ''}`}
-                      style={{ backgroundColor: hex, width: 30, height: 30 }}
-                      onClick={() => setAppearance((p) => ({ ...p, eyeColor: hex }))}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <div style={{ fontWeight: 800, fontSize: '0.84rem', marginBottom: 5 }}>
-                Couleurs de tenue
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {OUTFIT_PALETTE.map((theme) => {
-                  const active = appearance.outfitPrimary === theme.primary;
-                  return (
-                    <button
-                      key={theme.label}
-                      type="button"
-                      className={`tab-btn ${active ? 'tab-btn--active' : ''}`}
-                      style={{
-                        minHeight: 36,
-                        padding: '4px 10px',
-                        fontSize: '0.78rem',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 6,
-                      }}
-                      onClick={() =>
-                        setAppearance((p) => ({
-                          ...p,
-                          outfitPrimary: theme.primary,
-                          outfitSecondary: theme.secondary,
-                        }))
-                      }
-                    >
-                      <span
-                        style={{
-                          width: 14,
-                          height: 14,
-                          borderRadius: '50%',
-                          background: `linear-gradient(135deg, ${theme.primary} 55%, ${theme.secondary} 55%)`,
-                          border: '1.5px solid var(--ink-strong)',
-                          display: 'inline-block',
-                        }}
-                      />
-                      {theme.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="btn btn--primary btn--lg"
-              disabled={submitting}
-              style={{ marginTop: 4, width: '100%' }}
-            >
-              <Check size={20} />
-              {submitting ? 'Création en cours…' : 'Créer mon Combattant !'}
-            </button>
           </div>
         </form>
       </div>

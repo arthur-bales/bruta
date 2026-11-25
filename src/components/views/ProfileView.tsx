@@ -1,26 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import {
   Coins,
-  Dices,
   Flame,
   Heart,
   Play,
   Plus,
   Save,
+  ShoppingBag,
   Trophy,
   Wind,
   Zap,
 } from 'lucide-react';
-import type { AnimationName, CoreStats, FighterAppearance } from '@shared/types';
-import {
-  ALL_ANIMATIONS,
-  ANIMATION_SPECS,
-  EYE_STYLES,
-  HAIR_PALETTE,
-  HAIR_STYLES,
-  OUTFIT_PALETTE,
-  SKIN_PALETTE,
-} from '@shared/constants';
+import type { AnimationName, CoreStats } from '@shared/types';
+import { ALL_ANIMATIONS, ANIMATION_SPECS, RARITY_META } from '@shared/constants';
+import { DEFAULT_SKIN_ID, SKINS_CATALOG } from '@shared/skinsCatalog';
 import { PhaserCanvas } from '@/components/phaser/PhaserCanvas';
 import {
   HeartHp,
@@ -40,8 +33,6 @@ const STAT_META: { key: keyof CoreStats; label: string; desc: string }[] = [
   { key: 'lck', label: 'Chance', desc: 'Critiques, multiplicateur & butin' },
 ];
 
-const EYE_COLORS = ['#2563eb', '#dc2626', '#10b981', '#d97706', '#7c3aed', '#1e293b'];
-
 export const ProfileView: React.FC = () => {
   const {
     fighter,
@@ -49,6 +40,8 @@ export const ProfileView: React.FC = () => {
     homeArena,
     allocateStat,
     customizeFighter,
+    equipSkin,
+    setActiveView,
     addToast,
   } = useGame();
 
@@ -57,19 +50,22 @@ export const ProfileView: React.FC = () => {
   const [allocating, setAllocating] = useState<string | null>(null);
 
   const [editName, setEditName] = useState<string>(fighter?.name ?? '');
-  const [editAppearance, setEditAppearance] = useState<FighterAppearance | null>(
-    fighter?.appearance ?? null,
-  );
-  const [savingAppearance, setSavingAppearance] = useState(false);
+  const [editWarCry, setEditWarCry] = useState<string>(fighter?.appearance.warCry ?? 'En garde !');
+  const [savingIdentity, setSavingIdentity] = useState(false);
+  const [equippingSkinId, setEquippingSkinId] = useState<string | null>(null);
 
   useEffect(() => {
     if (fighter) {
       setEditName(fighter.name);
-      setEditAppearance(fighter.appearance);
+      setEditWarCry(fighter.appearance.warCry || 'En garde !');
     }
-  }, [fighter?.id, fighter?.name, fighter?.appearance]);
+  }, [fighter?.id, fighter?.name, fighter?.appearance.warCry]);
 
-  if (!fighter || !derivedStats || !editAppearance) return null;
+  if (!fighter || !derivedStats) return null;
+
+  const unlockedSkinIds = fighter.unlockedSkins ?? [DEFAULT_SKIN_ID];
+  const equippedSkinId = fighter.equippedSkinId ?? DEFAULT_SKIN_ID;
+  const ownedSkins = SKINS_CATALOG.filter((s) => unlockedSkinIds.includes(s.id));
 
   const statScale = Math.max(
     10,
@@ -111,43 +107,37 @@ export const ProfileView: React.FC = () => {
     }
   };
 
-  const handleRandomizeAppearance = () => {
-    soundEngine.play('click');
-    const rand = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
-    const outfit = rand(OUTFIT_PALETTE);
-    setEditAppearance((prev) => ({
-      ...(prev ?? fighter.appearance),
-      skinColor: rand(SKIN_PALETTE),
-      hairStyle: rand(HAIR_STYLES).id,
-      hairColor: rand(HAIR_PALETTE),
-      eyeStyle: rand(EYE_STYLES).id,
-      eyeColor: rand(EYE_COLORS),
-      outfitPrimary: outfit.primary,
-      outfitSecondary: outfit.secondary,
-    }));
-    handlePlayAnim('victory');
-  };
-
-  const handleSaveAppearance = async (e: React.FormEvent) => {
+  const handleSaveIdentity = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanName = editName.trim();
     if (cleanName.length < 2) {
       addToast('Le nom doit faire au moins 2 caractères.', 'error');
       return;
     }
-    setSavingAppearance(true);
+    setSavingIdentity(true);
     try {
       await customizeFighter({
         name: cleanName.slice(0, 20),
         appearance: {
-          ...editAppearance,
-          warCry: editAppearance.warCry.trim() || 'En garde !',
+          ...fighter.appearance,
+          warCry: editWarCry.trim() || 'En garde !',
         },
       });
     } catch (err) {
       addToast(err instanceof Error ? err.message : 'Impossible de sauvegarder.', 'error');
     } finally {
-      setSavingAppearance(false);
+      setSavingIdentity(false);
+    }
+  };
+
+  const handleEquipSkin = async (skinId: string) => {
+    setEquippingSkinId(skinId);
+    try {
+      await equipSkin(skinId);
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : 'Impossible d’équiper ce skin.', 'error');
+    } finally {
+      setEquippingSkinId(null);
     }
   };
 
@@ -169,7 +159,7 @@ export const ProfileView: React.FC = () => {
                 <PhaserCanvas
                   mode="showcase"
                   arena={homeArena}
-                  fighter={{ appearance: editAppearance, equipped: fighter.equipped }}
+                  fighter={{ appearance: fighter.appearance, equipped: fighter.equipped }}
                   previewAnim={previewAnim}
                 />
               </div>
@@ -407,185 +397,120 @@ export const ProfileView: React.FC = () => {
         </SectionCard>
       </div>
 
-      {/* Live Appearance Customizer */}
-      <form onSubmit={handleSaveAppearance}>
+      {/* Unlocked Skins Collection */}
+      <SectionCard
+        title="Mes Skins"
+        right={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <span className="mb-tag mb-tag--olive">
+              {ownedSkins.length}/{SKINS_CATALOG.length} débloqués
+            </span>
+            <button
+              type="button"
+              className="btn btn--sm btn--gold"
+              onClick={() => {
+                soundEngine.play('click');
+                setActiveView('shop');
+              }}
+            >
+              <ShoppingBag size={15} />
+              Boutique de Skins
+            </button>
+          </div>
+        }
+      >
+        <div className="shop-skins-grid">
+          {ownedSkins.map((skin) => {
+            const isEquipped = equippedSkinId === skin.id;
+            const rarityMeta = RARITY_META[skin.rarity];
+
+            return (
+              <div
+                key={skin.id}
+                className={`shop-skin-card ${isEquipped ? 'shop-skin-card--equipped' : ''}`}
+                style={{ borderColor: isEquipped ? '#6d7a1e' : rarityMeta.border }}
+              >
+                <div className="shop-skin-card__stage">
+                  <img src={skin.previewUrl} alt={skin.name} />
+                </div>
+
+                <div>
+                  <div className="shop-skin-card__name">{skin.name}</div>
+                  <div className="shop-skin-card__title">{skin.title}</div>
+                  <span
+                    className="badge"
+                    style={{
+                      background: '#fffdf3',
+                      color: rarityMeta.color,
+                      borderColor: rarityMeta.border,
+                      fontSize: '0.7rem',
+                      marginTop: 5,
+                    }}
+                  >
+                    {rarityMeta.label}
+                  </span>
+                </div>
+
+                <div className="shop-skin-card__footer">
+                  {isEquipped ? (
+                    <span className="mb-tag mb-tag--olive shop-skin-card__equipped-badge">
+                      ÉQUIPÉ ✓
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn btn--sm btn--sky"
+                      disabled={equippingSkinId !== null}
+                      onClick={() => void handleEquipSkin(skin.id)}
+                      style={{ width: '100%' }}
+                    >
+                      {equippingSkinId === skin.id ? '…' : 'ÉQUIPER'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </SectionCard>
+
+      {/* Fighter Identity Rename */}
+      <form onSubmit={handleSaveIdentity}>
         <SectionCard
-          title="Atelier d’Apparence"
+          title="Identité du Combattant"
           right={
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button type="button" className="btn btn--sm btn--gold" onClick={handleRandomizeAppearance}>
-                <Dices size={15} />
-                Aléatoire
-              </button>
-              <button type="submit" className="btn btn--sm btn--primary" disabled={savingAppearance}>
-                <Save size={15} />
-                {savingAppearance ? 'Sauvegarde…' : 'Enregistrer'}
-              </button>
-            </div>
+            <button type="submit" className="btn btn--sm btn--primary" disabled={savingIdentity}>
+              <Save size={15} />
+              {savingIdentity ? 'Sauvegarde…' : 'Enregistrer'}
+            </button>
           }
         >
-          <div className="mb-stack">
-            <div className="grid-2-equal">
-              <div>
-                <label htmlFor="profile-name" className="prof-label">
-                  Nom du combattant
-                </label>
-                <input
-                  id="profile-name"
-                  type="text"
-                  className="comic-input"
-                  maxLength={20}
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                />
-              </div>
-              <div>
-                <label htmlFor="profile-warcry" className="prof-label">
-                  Cri de guerre
-                </label>
-                <input
-                  id="profile-warcry"
-                  type="text"
-                  className="comic-input"
-                  maxLength={48}
-                  value={editAppearance.warCry}
-                  onChange={(e) =>
-                    setEditAppearance((p) => (p ? { ...p, warCry: e.target.value } : p))
-                  }
-                />
-              </div>
+          <div className="grid-2-equal">
+            <div>
+              <label htmlFor="profile-name" className="prof-label">
+                Nom du combattant
+              </label>
+              <input
+                id="profile-name"
+                type="text"
+                className="comic-input"
+                maxLength={20}
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+              />
             </div>
-
-            <div className="grid-2-equal">
-              <div className="mb-stack mb-stack--sm">
-                <div>
-                  <div className="prof-label">Teint de peau</div>
-                  <div className="swatch-row">
-                    {SKIN_PALETTE.map((hex) => (
-                      <button
-                        key={hex}
-                        type="button"
-                        aria-label={`Peau ${hex}`}
-                        className={`swatch-btn ${editAppearance.skinColor === hex ? 'swatch-btn--active' : ''}`}
-                        style={{ backgroundColor: hex }}
-                        onClick={() =>
-                          setEditAppearance((p) => (p ? { ...p, skinColor: hex } : p))
-                        }
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="prof-label">Coiffure</div>
-                  <div className="cell-pill-group">
-                    {HAIR_STYLES.map((style) => (
-                      <button
-                        key={style.id}
-                        type="button"
-                        className={`cell-mini-pill ${editAppearance.hairStyle === style.id ? 'cell-mini-pill--active' : ''}`}
-                        onClick={() =>
-                          setEditAppearance((p) => (p ? { ...p, hairStyle: style.id } : p))
-                        }
-                      >
-                        {style.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="prof-label">Couleur de cheveux</div>
-                  <div className="swatch-row">
-                    {HAIR_PALETTE.map((hex) => (
-                      <button
-                        key={hex}
-                        type="button"
-                        aria-label={`Cheveux ${hex}`}
-                        className={`swatch-btn ${editAppearance.hairColor === hex ? 'swatch-btn--active' : ''}`}
-                        style={{ backgroundColor: hex }}
-                        onClick={() =>
-                          setEditAppearance((p) => (p ? { ...p, hairColor: hex } : p))
-                        }
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mb-stack mb-stack--sm">
-                <div>
-                  <div className="prof-label">Style des yeux</div>
-                  <div className="cell-pill-group">
-                    {EYE_STYLES.map((eye) => (
-                      <button
-                        key={eye.id}
-                        type="button"
-                        className={`cell-mini-pill ${editAppearance.eyeStyle === eye.id ? 'cell-mini-pill--active' : ''}`}
-                        onClick={() =>
-                          setEditAppearance((p) => (p ? { ...p, eyeStyle: eye.id } : p))
-                        }
-                      >
-                        {eye.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="prof-label">Couleur des yeux</div>
-                  <div className="swatch-row">
-                    {EYE_COLORS.map((hex) => (
-                      <button
-                        key={hex}
-                        type="button"
-                        aria-label={`Yeux ${hex}`}
-                        className={`swatch-btn ${editAppearance.eyeColor === hex ? 'swatch-btn--active' : ''}`}
-                        style={{ backgroundColor: hex }}
-                        onClick={() =>
-                          setEditAppearance((p) => (p ? { ...p, eyeColor: hex } : p))
-                        }
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="prof-label">Couleurs de tenue</div>
-                  <div className="cell-pill-group">
-                    {OUTFIT_PALETTE.map((theme) => (
-                      <button
-                        key={theme.label}
-                        type="button"
-                        className={`cell-mini-pill ${editAppearance.outfitPrimary === theme.primary ? 'cell-mini-pill--active' : ''}`}
-                        onClick={() =>
-                          setEditAppearance((p) =>
-                            p
-                              ? {
-                                  ...p,
-                                  outfitPrimary: theme.primary,
-                                  outfitSecondary: theme.secondary,
-                                }
-                              : p,
-                          )
-                        }
-                      >
-                        <span
-                          style={{
-                            width: 13,
-                            height: 13,
-                            borderRadius: '50%',
-                            background: `linear-gradient(135deg, ${theme.primary} 55%, ${theme.secondary} 55%)`,
-                            border: '1.5px solid var(--ink-strong)',
-                            display: 'inline-block',
-                          }}
-                        />
-                        {theme.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
+            <div>
+              <label htmlFor="profile-warcry" className="prof-label">
+                Cri de guerre
+              </label>
+              <input
+                id="profile-warcry"
+                type="text"
+                className="comic-input"
+                maxLength={48}
+                value={editWarCry}
+                onChange={(e) => setEditWarCry(e.target.value)}
+              />
             </div>
           </div>
         </SectionCard>

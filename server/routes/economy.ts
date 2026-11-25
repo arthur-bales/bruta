@@ -22,6 +22,7 @@ import {
   regenerateEnergy,
 } from '../../shared/progression.js';
 import { getSkillDefinition, getSkillUpgradeCost } from '../../shared/skillsCatalog.js';
+import { getSkinById, SKINS_CATALOG } from '../../shared/skinsCatalog.js';
 import type { EquipmentItem, EquipmentSlot, FighterProfile, ShopStockItem } from '../../shared/types.js';
 import { getUpgradeCost, getUpgradeDefinition } from '../../shared/upgradesCatalog.js';
 import { db } from '../db/database.js';
@@ -330,6 +331,56 @@ shopRouter.post('/buy', async (req, res, next) => {
 
     const saved = await db.saveFighter(userId, fighter);
     res.status(200).json({ fighter: saved, item, stock: state.stock });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/shop/buy-skin — Purchase a fighter skin with gold and equip it
+shopRouter.post('/buy-skin', async (req, res, next) => {
+  try {
+    const userId = req.authUserId!;
+    const skinId = typeof req.body?.skinId === 'string' ? req.body.skinId.trim() : '';
+    const skin = SKINS_CATALOG.find((s) => s.id === skinId);
+    if (!skin) {
+      res.status(404).json({ error: 'Skin introuvable.' });
+      return;
+    }
+
+    const fighter = await loadFighter(userId);
+    if (!fighter) {
+      res.status(404).json({ error: 'Combattant introuvable.' });
+      return;
+    }
+
+    const unlocked = Array.isArray(fighter.unlockedSkins)
+      ? [...fighter.unlockedSkins]
+      : ['skin_hero_dojo'];
+    if (!unlocked.includes('skin_hero_dojo')) {
+      unlocked.unshift('skin_hero_dojo');
+    }
+
+    if (unlocked.includes(skin.id)) {
+      fighter.unlockedSkins = unlocked;
+      fighter.equippedSkinId = skin.id;
+      const saved = await db.saveFighter(userId, fighter);
+      res.status(200).json({ fighter: saved, skin: getSkinById(skin.id) });
+      return;
+    }
+
+    if (fighter.gold < skin.priceGold) {
+      res.status(400).json({ error: `Or insuffisant (requis : ${skin.priceGold} or).` });
+      return;
+    }
+
+    fighter.gold -= skin.priceGold;
+    unlocked.push(skin.id);
+    fighter.unlockedSkins = unlocked;
+    fighter.equippedSkinId = skin.id;
+    fighter.lastActiveAt = Date.now();
+
+    const saved = await db.saveFighter(userId, fighter);
+    res.status(200).json({ fighter: saved, skin });
   } catch (err) {
     next(err);
   }

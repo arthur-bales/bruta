@@ -4,6 +4,7 @@
 
 import Phaser from 'phaser';
 import type { AnimationName, ArenaTheme } from '@shared/types';
+import { getSkinById } from '@shared/skinsCatalog';
 import { AI_DUMMY_ASSET } from '../art/aiAssets';
 import { registerVfxTexturesInPhaser } from '../art/vfxRenderer';
 import { soundEngine } from '../audio/soundEffects';
@@ -11,6 +12,7 @@ import {
   FighterSprite,
   preloadDummyAiAsset,
   preloadHeroAiAssets,
+  preloadRivalAiAssets,
 } from './FighterSprite';
 import {
   ARENA_ASSETS,
@@ -36,6 +38,7 @@ export class ClickerScene extends Phaser.Scene {
   private bgImage: Phaser.GameObjects.Image | null = null;
   private feverTintOverlay: Phaser.GameObjects.Rectangle | null = null;
   private fighter: FighterSprite | null = null;
+  private currentSkinId: string | undefined;
 
   // Real AI Training Dummy + ground shadow + Fever Mode golden aura
   private dummyShadow: Phaser.GameObjects.Ellipse | null = null;
@@ -84,6 +87,7 @@ export class ClickerScene extends Phaser.Scene {
     }
 
     preloadHeroAiAssets(this);
+    preloadRivalAiAssets(this);
     preloadDummyAiAsset(this);
   }
 
@@ -295,22 +299,41 @@ export class ClickerScene extends Phaser.Scene {
 
   private syncFighter(data: FighterVisualData | null): void {
     if (!data) {
+      if (this.fighterLungeTween) {
+        this.fighterLungeTween.stop();
+        this.fighterLungeTween = null;
+      }
       if (this.fighter) {
         this.fighter.destroy();
         this.fighter = null;
       }
+      this.currentSkinId = undefined;
       return;
     }
 
     const layout = this.computeLayout(this.scale.width, this.scale.height);
+    const nextSkinId = data.equippedSkinId;
+    const playerSkinKey = getSkinById(nextSkinId).rivalSpriteKey;
+
+    if (this.fighter && this.currentSkinId !== nextSkinId) {
+      if (this.fighterLungeTween) {
+        this.fighterLungeTween.stop();
+        this.fighterLungeTween = null;
+      }
+      this.fighter.destroy();
+      this.fighter = null;
+    }
+
     if (!this.fighter) {
+      this.currentSkinId = nextSkinId;
       this.fighter = new FighterSprite(
         this,
         layout.fighterX,
         layout.floorY,
         data.appearance,
         data.equipped,
-        layout.scale
+        layout.scale,
+        { rivalSpriteKey: playerSkinKey }
       );
       this.fighter.setFacing('right');
       this.fighter.setDepth(12);
@@ -987,6 +1010,7 @@ export class ClickerScene extends Phaser.Scene {
       this.fighter.destroy();
       this.fighter = null;
     }
+    this.currentSkinId = undefined;
 
     if (this.dummyShadow && this.dummyShadow.scene) {
       this.dummyShadow.destroy();

@@ -70,21 +70,6 @@ router.post('/arena', async (req, res, next) => {
     }
 
     const now = Date.now();
-    regenerateEnergy(fighter, now);
-
-    if (fighter.energy < 1) {
-      res.status(400).json({
-        error: 'Énergie insuffisante ! Attends la régénération ou monte de niveau.',
-      });
-      return;
-    }
-
-    // Consume 1 energy
-    const wasAtMax = fighter.energy >= fighter.maxEnergy;
-    fighter.energy -= 1;
-    if (wasAtMax) {
-      fighter.lastEnergyUpdate = now;
-    }
 
     const leftParticipant = fighterToCombatParticipant(fighter);
     const rightParticipant = opponentToCombatParticipant(opponent);
@@ -109,7 +94,7 @@ router.post('/arena', async (req, res, next) => {
     if (playerWon) {
       gold = Math.max(8, Math.round(opponent.rewardGold * metrics.goldMultiplier));
       xp = Math.max(10, Math.round(opponent.rewardXp * metrics.xpMultiplier));
-      gems = opponent.isBoss ? 2 : 1;
+      gems = 0;
 
       const levelDiff = Math.max(0, Math.min(10, opponent.level - fighter.level + 3));
       rawRatingDelta = opponent.isBoss ? 25 : Math.min(25, 15 + levelDiff);
@@ -220,14 +205,6 @@ router.post('/pvp', async (req, res, next) => {
     }
 
     const now = Date.now();
-    regenerateEnergy(fighter, now);
-
-    if (fighter.energy < 1) {
-      res.status(400).json({
-        error: 'Énergie insuffisante ! Attends la régénération ou monte de niveau.',
-      });
-      return;
-    }
 
     let rightParticipant: CombatParticipant | null = null;
     let targetLevel = fighter.level;
@@ -255,13 +232,6 @@ router.post('/pvp', async (req, res, next) => {
       return;
     }
 
-    // Consume 1 energy
-    const wasAtMax = fighter.energy >= fighter.maxEnergy;
-    fighter.energy -= 1;
-    if (wasAtMax) {
-      fighter.lastEnergyUpdate = now;
-    }
-
     const leftParticipant = fighterToCombatParticipant(fighter);
     const simulation = simulateCombat({
       left: leftParticipant,
@@ -281,7 +251,7 @@ router.post('/pvp', async (req, res, next) => {
     if (playerWon) {
       gold = Math.max(18, Math.round(targetBaseGold * 0.65 * metrics.goldMultiplier));
       xp = Math.max(20, Math.round(targetBaseXp * metrics.xpMultiplier));
-      gems = 1;
+      gems = 0;
       rawRatingDelta = 22;
 
       fighter.progress.pvpWins += 1;

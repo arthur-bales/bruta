@@ -6,7 +6,7 @@ import { CoinPill, formatCompact } from '@/components/ui/BruteUI';
 
 /**
  * Status plaque shown under the banner (PC) / at the top of the screen (mobile):
- *   [ NOM  NIV. 7 ]                         [🪙 1 250] [💎 3] [⚡ 5/5] [🔊] [👤]
+ *   [ NOM  NIV. 7 ]                         [Or 1 250] [Son] [Compte]
  *   EXP. [==========-----------  120 / 300 ]
  */
 export const TopHud: React.FC = () => {
@@ -41,18 +41,6 @@ export const TopHud: React.FC = () => {
 
         <div className="hud-resources">
           <CoinPill value={formatCompact(effectiveGold)} title="Pièces d’or" />
-          <CoinPill
-            kind="gem"
-            value={formatCompact(fighter.gems)}
-            title="Gemmes"
-            className="hud-hide-xs"
-          />
-          <CoinPill
-            kind="energy"
-            value={`${fighter.energy}/${fighter.maxEnergy}`}
-            title="Énergie d’arène (se régénère automatiquement)"
-            className="hud-hide-sm"
-          />
           <button
             type="button"
             className="hud-square-btn"

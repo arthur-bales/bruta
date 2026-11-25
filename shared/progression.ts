@@ -61,7 +61,7 @@ export function createInitialFighter(id: string, name = 'Brute'): FighterProfile
     xp: 0,
     xpToNext: xpRequiredForLevel(1),
     gold: 40,
-    gems: 10,
+    gems: 0,
     energy: MAX_ENERGY,
     maxEnergy: MAX_ENERGY,
     lastEnergyUpdate: now,
@@ -75,6 +75,8 @@ export function createInitialFighter(id: string, name = 'Brute'): FighterProfile
       lck: 5,
     },
     appearance: { ...DEFAULT_APPEARANCE },
+    unlockedSkins: ['skin_hero_dojo'],
+    equippedSkinId: 'skin_hero_dojo',
     equipped: {
       weapon: starterWeapon,
       helmet: null,
@@ -355,14 +357,11 @@ export function computeClickMetrics(fighter: FighterProfile): ClickMetrics {
     Math.round((8 + totalStr * 1.45 + fighter.level * 2 + steelFists * 4) * clickPowerMult),
   );
 
-  const goldPerClick = Math.max(
-    1,
-    Math.round(
-      (1 + fighter.level * 0.35 + steelFists * 0.85 + totalLck * 0.08) *
-        comboRewardMult *
-        goldMultiplier,
-    ),
-  );
+  const rawGoldPerClick =
+    (1 + fighter.level * 0.35 + steelFists * 0.85 + totalLck * 0.08) *
+    comboRewardMult *
+    goldMultiplier;
+  const goldPerClick = Number(Math.max(0.5, rawGoldPerClick * 0.5).toFixed(2));
 
   const xpPerClick = Math.max(
     1,
@@ -376,11 +375,11 @@ export function computeClickMetrics(fighter: FighterProfile): ClickMetrics {
   );
 
   const rawAutoGold =
-    autoDummy * 1 + autoApprentices * 3.5 + autoSpringHammer * 10 + autoSanctuary * 35;
+    autoDummy * 0.5 + autoApprentices * 1.75 + autoSpringHammer * 5 + autoSanctuary * 17.5;
   const rawAutoXp =
     autoDummy * 1 + autoApprentices * 2.5 + autoSpringHammer * 7 + autoSanctuary * 20;
 
-  const autoGoldPerSec = Number((rawAutoGold * goldMultiplier).toFixed(1));
+  const autoGoldPerSec = Number((rawAutoGold * goldMultiplier).toFixed(2));
   const autoXpPerSec = Number((rawAutoXp * xpMultiplier).toFixed(1));
 
   return {
@@ -526,8 +525,8 @@ export const CHEST_OFFERS: ChestOffer[] = [
     name: 'Coffre du Gladiateur',
     description: 'Garantit au minimum un équipement Rare avec fortes chances d’Épique !',
     icon: '🧰',
-    currency: 'gems',
-    price: 20,
+    currency: 'gold',
+    price: 900,
     minRarity: 'rare',
     accentColor: '#9b30c9',
   },
@@ -536,8 +535,8 @@ export const CHEST_OFFERS: ChestOffer[] = [
     name: 'Coffre Mythique du Dragon',
     description: 'Un trésor royal garantissant au moins Épique — et de vraies chances de Mythique !',
     icon: '🐉',
-    currency: 'gems',
-    price: 55,
+    currency: 'gold',
+    price: 2500,
     minRarity: 'epic',
     accentColor: '#dc2626',
   },

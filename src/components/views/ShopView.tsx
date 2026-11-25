@@ -3,6 +3,7 @@ import { RefreshCw, Sparkles, Check, X, Heart } from 'lucide-react';
 import type { EquipmentItem, ShopStockItem } from '@shared/types';
 import { RARITY_META, SLOT_LABELS } from '@shared/constants';
 import { CHEST_OFFERS, type ChestOffer } from '@shared/progression';
+import { DEFAULT_SKIN_ID, SKINS_CATALOG } from '@shared/skinsCatalog';
 import { CoinPill, MbRow, PriceButton, SectionCard, formatCompact } from '@/components/ui/BruteUI';
 import { GameIcon } from '@/components/ui/GameIcon';
 import { apiClient } from '@/state/apiClient';
@@ -16,6 +17,8 @@ export const ShopView: React.FC = () => {
     effectiveGold,
     applyFighterUpdate,
     equipItem,
+    buySkin,
+    equipSkin,
     flushClicks,
     addToast,
   } = useGame();
@@ -47,6 +50,31 @@ export const ShopView: React.FC = () => {
 
   if (!fighter) return null;
 
+  const unlockedSkins = fighter.unlockedSkins ?? [DEFAULT_SKIN_ID];
+  const equippedSkinId = fighter.equippedSkinId ?? DEFAULT_SKIN_ID;
+
+  const handleBuySkin = async (skinId: string) => {
+    setBusyId(skinId);
+    try {
+      await buySkin(skinId);
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : 'Or insuffisant pour ce skin.', 'error');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleEquipSkin = async (skinId: string) => {
+    setBusyId(skinId);
+    try {
+      await equipSkin(skinId);
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : 'Impossible d’équiper ce skin.', 'error');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   const handleOpenChest = async (chest: ChestOffer) => {
     setBusyId(chest.id);
     try {
@@ -56,7 +84,7 @@ export const ShopView: React.FC = () => {
       soundEngine.play('chest');
       setRevealedItem(res.item);
     } catch (err) {
-      addToast(err instanceof Error ? err.message : 'Ressources insuffisantes.', 'error');
+      addToast(err instanceof Error ? err.message : 'Or insuffisant.', 'error');
     } finally {
       setBusyId(null);
     }
@@ -238,22 +266,93 @@ export const ShopView: React.FC = () => {
         </div>
       )}
 
-      {/* Mystery Chests */}
+      {/* Fighter Skins Store */}
       <SectionCard
-        title="Coffres Mystères"
+        title="Skins de Combattant"
         right={
           <>
+            <span className="mb-tag mb-tag--olive">
+              {unlockedSkins.length}/{SKINS_CATALOG.length} débloqués
+            </span>
             <CoinPill value={formatCompact(effectiveGold)} kind="gold" />
-            <CoinPill value={formatCompact(fighter.gems)} kind="gem" />
           </>
         }
       >
+        <div className="shop-skins-grid">
+          {SKINS_CATALOG.map((skin) => {
+            const isUnlocked = unlockedSkins.includes(skin.id);
+            const isEquipped = equippedSkinId === skin.id;
+            const rarityMeta = RARITY_META[skin.rarity];
+            const canAfford = effectiveGold >= skin.priceGold;
+
+            return (
+              <div
+                key={skin.id}
+                className={`shop-skin-card ${isEquipped ? 'shop-skin-card--equipped' : ''}`}
+                style={{ borderColor: isEquipped ? '#6d7a1e' : rarityMeta.border }}
+              >
+                <div className="shop-skin-card__stage">
+                  <img src={skin.previewUrl} alt={skin.name} />
+                </div>
+
+                <div>
+                  <div className="shop-skin-card__name">{skin.name}</div>
+                  <div className="shop-skin-card__title">{skin.title}</div>
+                  <span
+                    className="badge"
+                    style={{
+                      background: '#fffdf3',
+                      color: rarityMeta.color,
+                      borderColor: rarityMeta.border,
+                      fontSize: '0.7rem',
+                      marginTop: 5,
+                    }}
+                  >
+                    {rarityMeta.label}
+                  </span>
+                </div>
+
+                <p className="shop-skin-card__desc">{skin.description}</p>
+
+                <div className="shop-skin-card__footer">
+                  {isEquipped ? (
+                    <span className="mb-tag mb-tag--olive shop-skin-card__equipped-badge">
+                      ÉQUIPÉ ✓
+                    </span>
+                  ) : isUnlocked ? (
+                    <button
+                      type="button"
+                      className="btn btn--sm btn--sky"
+                      disabled={busyId !== null}
+                      onClick={() => void handleEquipSkin(skin.id)}
+                      style={{ width: '100%' }}
+                    >
+                      {busyId === skin.id ? '…' : 'ÉQUIPER'}
+                    </button>
+                  ) : (
+                    <PriceButton
+                      cost={busyId === skin.id ? '…' : skin.priceGold}
+                      currency="gold"
+                      disabled={!canAfford || busyId !== null}
+                      onClick={() => void handleBuySkin(skin.id)}
+                      style={{ width: '100%' }}
+                    />
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </SectionCard>
+
+      {/* Mystery Chests */}
+      <SectionCard
+        title="Coffres Mystères"
+        right={<CoinPill value={formatCompact(effectiveGold)} kind="gold" />}
+      >
         <div className="shop-chests-grid">
           {chests.map((chest) => {
-            const canAfford =
-              chest.currency === 'gold'
-                ? effectiveGold >= chest.price
-                : fighter.gems >= chest.price;
+            const canAfford = effectiveGold >= chest.price;
             const minMeta = RARITY_META[chest.minRarity];
 
             return (
@@ -291,7 +390,7 @@ export const ShopView: React.FC = () => {
 
                 <PriceButton
                   cost={busyId === chest.id ? '…' : chest.price}
-                  currency={chest.currency === 'gems' ? 'gem' : 'gold'}
+                  currency="gold"
                   disabled={!canAfford || busyId !== null}
                   onClick={() => void handleOpenChest(chest)}
                   style={{ marginTop: 'auto', width: '100%' }}

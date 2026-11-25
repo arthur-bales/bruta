@@ -248,9 +248,7 @@ router.put('/settings', async (req, res, next) => {
     if (typeof incoming.soundVolume === 'number' && Number.isFinite(incoming.soundVolume)) {
       fighter.settings.soundVolume = Math.max(0, Math.min(1, incoming.soundVolume));
     }
-    if (incoming.battleSpeed === 1 || incoming.battleSpeed === 2) {
-      fighter.settings.battleSpeed = incoming.battleSpeed;
-    }
+    fighter.settings.battleSpeed = 1;
     if (typeof incoming.reducedMotion === 'boolean') {
       fighter.settings.reducedMotion = incoming.reducedMotion;
     }
@@ -263,117 +261,50 @@ router.put('/settings', async (req, res, next) => {
   }
 });
 
-// POST /api/player/import-save — Validate and import an exported FighterProfile JSON
-router.post('/import-save', async (req, res, next) => {
+// POST /api/player/equip-skin — Equip an unlocked fighter skin
+router.post('/equip-skin', async (req, res, next) => {
   try {
     const userId = req.authUserId!;
-    const existing = await getRequiredFighter(userId);
-    if (!existing) {
+    const skinId = typeof req.body?.skinId === 'string' ? req.body.skinId.trim() : '';
+    if (!skinId) {
+      res.status(400).json({ error: 'skinId requis.' });
+      return;
+    }
+
+    const fighter = await getRequiredFighter(userId);
+    if (!fighter) {
       res.status(404).json({ error: 'Combattant introuvable.' });
       return;
     }
 
-    const candidate = (req.body?.fighter ?? req.body) as Partial<FighterProfile> | null;
-    if (
-      !candidate ||
-      typeof candidate !== 'object' ||
-      typeof candidate.name !== 'string' ||
-      typeof candidate.level !== 'number' ||
-      !candidate.baseStats ||
-      typeof candidate.baseStats !== 'object' ||
-      !candidate.equipped ||
-      typeof candidate.equipped !== 'object'
-    ) {
-      res.status(400).json({ error: 'Fichier de sauvegarde invalide ou incomplet.' });
+    const unlocked = Array.isArray(fighter.unlockedSkins)
+      ? fighter.unlockedSkins
+      : ['skin_hero_dojo'];
+    if (!unlocked.includes('skin_hero_dojo')) {
+      unlocked.unshift('skin_hero_dojo');
+    }
+
+    if (!unlocked.includes(skinId)) {
+      res.status(400).json({ error: 'Tu dois d’abord acheter ce skin dans la boutique.' });
       return;
     }
 
-    const safeLevel = Math.max(1, Math.min(999, Math.floor(candidate.level)));
-    const safeStat = (v: unknown, fallback: number) =>
-      typeof v === 'number' && Number.isFinite(v) ? Math.max(1, Math.floor(v)) : fallback;
-    const safeNonNeg = (v: unknown, fallback = 0) =>
-      typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.floor(v)) : fallback;
+    fighter.unlockedSkins = unlocked;
+    fighter.equippedSkinId = skinId;
+    fighter.lastActiveAt = Date.now();
 
-    const base = createInitialFighter(existing.id, candidate.name.trim().slice(0, 20) || existing.name);
-
-    const imported: FighterProfile = {
-      ...base,
-      id: existing.id, // Always preserve server fighter ID
-      name: candidate.name.trim().slice(0, 20) || existing.name,
-      title: typeof candidate.title === 'string' && candidate.title.trim() ? candidate.title.trim().slice(0, 32) : base.title,
-      level: safeLevel,
-      xp: safeNonNeg(candidate.xp, 0),
-      xpToNext: xpRequiredForLevel(safeLevel),
-      gold: safeNonNeg(candidate.gold, base.gold),
-      gems: safeNonNeg(candidate.gems, base.gems),
-      energy: Math.min(MAX_ENERGY, safeNonNeg(candidate.energy, MAX_ENERGY)),
-      maxEnergy: MAX_ENERGY,
-      lastEnergyUpdate: Date.now(),
-      rating: Math.max(800, safeNonNeg(candidate.rating, 1000)),
-      statPoints: safeNonNeg(candidate.statPoints, 0),
-      baseStats: {
-        str: safeStat(candidate.baseStats.str, base.baseStats.str),
-        def: safeStat(candidate.baseStats.def, base.baseStats.def),
-        agi: safeStat(candidate.baseStats.agi, base.baseStats.agi),
-        vit: safeStat(candidate.baseStats.vit, base.baseStats.vit),
-        lck: safeStat(candidate.baseStats.lck, base.baseStats.lck),
-      },
-      appearance: {
-        ...DEFAULT_APPEARANCE,
-        ...(candidate.appearance && typeof candidate.appearance === 'object'
-          ? candidate.appearance
-          : {}),
-      },
-      equipped: {
-        weapon: candidate.equipped.weapon ?? null,
-        helmet: candidate.equipped.helmet ?? null,
-        armor: candidate.equipped.armor ?? null,
-        gloves: candidate.equipped.gloves ?? null,
-        boots: candidate.equipped.boots ?? null,
-        accessory: candidate.equipped.accessory ?? null,
-      },
-      inventory: Array.isArray(candidate.inventory)
-        ? candidate.inventory.slice(0, MAX_INVENTORY_SIZE)
-        : [],
-      skills:
-        candidate.skills && typeof candidate.skills === 'object' ? { ...candidate.skills } : {},
-      equippedSkills: Array.isArray(candidate.equippedSkills)
-        ? candidate.equippedSkills
-            .filter((s): s is string => typeof s === 'string')
-            .slice(0, MAX_EQUIPPED_ACTIVE_SKILLS)
-        : [],
-      upgrades:
-        candidate.upgrades && typeof candidate.upgrades === 'object'
-          ? { ...candidate.upgrades }
-          : {},
-      claimedMissions: Array.isArray(candidate.claimedMissions)
-        ? candidate.claimedMissions.filter((m): m is string => typeof m === 'string')
-        : [],
-      dailyStreak: Math.min(7, safeNonNeg(candidate.dailyStreak, 0)),
-      lastDailyClaimDate:
-        typeof candidate.lastDailyClaimDate === 'string' ? candidate.lastDailyClaimDate : null,
-      progress: {
-        ...base.progress,
-        ...(candidate.progress && typeof candidate.progress === 'object'
-          ? candidate.progress
-          : {}),
-      },
-      settings: {
-        ...base.settings,
-        ...(candidate.settings && typeof candidate.settings === 'object'
-          ? candidate.settings
-          : {}),
-      },
-      createdAt: existing.createdAt,
-      lastActiveAt: Date.now(),
-      isCustomized: Boolean(candidate.isCustomized ?? true),
-    };
-
-    const saved = await db.saveFighter(userId, imported);
+    const saved = await db.saveFighter(userId, fighter);
     res.status(200).json({ fighter: saved });
   } catch (err) {
     next(err);
   }
+});
+
+// POST /api/player/import-save — Disabled to prevent client-side JSON save tampering
+router.post('/import-save', (_req, res) => {
+  res.status(403).json({
+    error: 'L’import de sauvegarde JSON est désactivé pour garantir l’équité du jeu.',
+  });
 });
 
 // POST /api/player/reset — Reset fighter back to Lv1 while preserving server ID

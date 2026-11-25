@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Swords, RefreshCw, Crown } from 'lucide-react';
 import type { LeaderboardEntry } from '@shared/types';
-import { AI_HERO_POSES, resolveRivalSprite } from '@/engine/art/aiAssets';
-import { CoinPill, HeartHp, SectionCard } from '@/components/ui/BruteUI';
+import { getSkinById } from '@shared/skinsCatalog';
+import { resolveRivalSprite } from '@/engine/art/aiAssets';
+import { HeartHp, SectionCard } from '@/components/ui/BruteUI';
 import { GameIcon } from '@/components/ui/GameIcon';
 import { apiClient } from '@/state/apiClient';
 import { useGame } from '@/state/GameContext';
@@ -36,12 +37,9 @@ export const LeaderboardView: React.FC = () => {
   if (!fighter) return null;
 
   const myEntry = entries.find((e) => e.playerId === fighter.id);
+  const mySkinPreviewUrl = getSkinById(fighter.equippedSkinId).previewUrl;
 
   const handleChallenge = async (entry: LeaderboardEntry) => {
-    if (fighter.energy <= 0) {
-      addToast('Plus d’énergie pour défier un rival ! Patiente ou monte de niveau.', 'error');
-      return;
-    }
     setChallengingId(entry.playerId);
     try {
       soundEngine.play('click');
@@ -64,12 +62,6 @@ export const LeaderboardView: React.FC = () => {
                 <Crown size={13} style={{ marginRight: 4 }} />#{myEntry.rank} • {myEntry.rating} Elo
               </span>
             )}
-            <CoinPill
-              kind="energy"
-              value={`${fighter.energy}/${fighter.maxEnergy}`}
-              title="Énergie d'arène"
-              className="arena-energy-pill"
-            />
             <button
               type="button"
               className="btn btn--sm"
@@ -98,7 +90,7 @@ export const LeaderboardView: React.FC = () => {
             {entries.map((entry) => {
               const isMe = entry.playerId === fighter.id;
               const portraitUrl = isMe
-                ? AI_HERO_POSES.idle
+                ? mySkinPreviewUrl
                 : resolveRivalSprite(`${entry.playerId} ${entry.name}`).url;
 
               const rankTierClass =
@@ -153,7 +145,7 @@ export const LeaderboardView: React.FC = () => {
                       <button
                         type="button"
                         className="btn btn--primary btn--sm"
-                        disabled={challengingId !== null || fighter.energy <= 0}
+                        disabled={challengingId !== null}
                         onClick={() => void handleChallenge(entry)}
                       >
                         <Swords size={15} />

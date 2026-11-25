@@ -16,6 +16,7 @@ export type PhaserSceneMode = 'showcase' | 'arena' | 'clicker';
 export interface FighterVisualData {
   appearance: FighterAppearance;
   equipped: EquippedGear;
+  equippedSkinId?: string;
 }
 
 export interface PreviewAnimCommand {
@@ -40,7 +41,7 @@ export interface ClickerStrikePayload {
 export interface PhaserCanvasProps {
   mode: PhaserSceneMode;
   arena?: ArenaTheme;
-  fighter?: { appearance: FighterAppearance; equipped: EquippedGear };
+  fighter?: { appearance: FighterAppearance; equipped: EquippedGear; equippedSkinId?: string };
   previewAnim?: { anim: AnimationName; nonce: number } | null;
   battle?: BattleResult | null;
   battleSpeed?: 1 | 2;

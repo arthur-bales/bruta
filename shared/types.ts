@@ -286,6 +286,17 @@ export interface PlayerSettings {
   reducedMotion: boolean;
 }
 
+export interface SkinDefinition {
+  id: string;
+  name: string;
+  title: string;
+  description: string;
+  rarity: Rarity;
+  priceGold: number;
+  previewUrl: string;
+  rivalSpriteKey?: string;
+}
+
 export interface FighterProfile {
   id: string;
   name: string;
@@ -302,6 +313,8 @@ export interface FighterProfile {
   statPoints: number;
   baseStats: CoreStats;
   appearance: FighterAppearance;
+  unlockedSkins?: string[];
+  equippedSkinId?: string;
   equipped: EquippedGear;
   inventory: EquipmentItem[];
   skills: Record<string, number>; // skillId -> level

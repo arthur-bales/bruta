@@ -53,6 +53,11 @@ function formatDuration(seconds: number): string {
   return `${seconds}s`;
 }
 
+function formatGoldDecimal(value: number): string {
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+}
+
 export const HomeView: React.FC = () => {
   const {
     fighter,
@@ -67,7 +72,6 @@ export const HomeView: React.FC = () => {
     canClaimDaily,
     claimableMissionsCount,
     claimDailyReward,
-    setShowCreationModal,
     registerClickStrike,
     allocateStat,
     buyUpgrade,
@@ -161,9 +165,9 @@ export const HomeView: React.FC = () => {
       anim: isCrit ? 'special' : 'attack',
       nonce: (prev?.nonce ?? 0) + 1,
     }));
-    const gain = Math.round(clickMetrics.goldPerClick * (isCrit ? 1.5 : 1));
+    const gain = clickMetrics.goldPerClick * (isCrit ? 1.5 : 1);
     setTapFeedback((prev) => ({
-      text: `${isCrit ? 'CRIT! +' : '+'}${gain} Or`,
+      text: `${isCrit ? 'CRIT! +' : '+'}${formatGoldDecimal(gain)} Or`,
       nonce: (prev?.nonce ?? 0) + 1,
     }));
   };
@@ -256,7 +260,7 @@ export const HomeView: React.FC = () => {
                   : `${claimableMissionsCount} récompense(s) de mission prête(s) !`}
               </div>
               <p className="cell-banner__sub">
-                Récupère ton or, tes gemmes et tes coffres bonus du dojo.
+                Récupère ton or, ton XP et tes coffres bonus du dojo.
               </p>
             </div>
           </div>
@@ -449,7 +453,7 @@ export const HomeView: React.FC = () => {
                 title="Tape pour entraîner ta brute et gagner de l'or instantanément !"
               >
                 <GameIcon name="fist" size={16} />
-                TAPE POUR ENTRAÎNER (+{clickMetrics.goldPerClick} Or)
+                TAPE POUR ENTRAÎNER (+{formatGoldDecimal(clickMetrics.goldPerClick)} Or)
               </button>
             </div>
 
@@ -507,7 +511,7 @@ export const HomeView: React.FC = () => {
               </div>
             </div>
 
-            {/* Compact Arena Theme Switcher + Pose / Style controls */}
+            {/* Compact Arena Theme Switcher + Pose / Skins controls */}
             <div className="cell-stage-controls">
               <div className="cell-pill-group">
                 {ARENA_OPTIONS.map((ar) => (
@@ -541,11 +545,11 @@ export const HomeView: React.FC = () => {
                   className="cell-mini-pill"
                   onClick={() => {
                     soundEngine.play('click');
-                    setShowCreationModal(true);
+                    setActiveView('shop');
                   }}
                 >
                   <Palette size={13} />
-                  Style
+                  Skins
                 </button>
                 <button
                   type="button"

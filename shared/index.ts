@@ -5,5 +5,6 @@ export * from './skillsCatalog.js';
 export * from './upgradesCatalog.js';
 export * from './opponentsCatalog.js';
 export * from './missionsCatalog.js';
+export * from './skinsCatalog.js';
 export * from './progression.js';
 export * from './combatEngine.js';

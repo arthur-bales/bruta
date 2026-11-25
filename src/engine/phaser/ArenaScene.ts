@@ -9,6 +9,7 @@ import type {
   CombatEvent,
   CombatSide,
 } from '@shared/types';
+import { getSkinById } from '@shared/skinsCatalog';
 import { resolveRivalSprite } from '../art/aiAssets';
 import { registerVfxTexturesInPhaser } from '../art/vfxRenderer';
 import { soundEngine } from '../audio/soundEffects';
@@ -41,6 +42,7 @@ export class ArenaScene extends Phaser.Scene {
   private bgImage: Phaser.GameObjects.Image | null = null;
   private leftFighter: FighterSprite | null = null;
   private rightFighter: FighterSprite | null = null;
+  private currentSkinId: string | undefined;
 
   private activeBattle: BattleResult | null = null;
   private playbackToken = 0;
@@ -77,7 +79,7 @@ export class ArenaScene extends Phaser.Scene {
     registerVfxTexturesInPhaser(this);
 
     const state = this.bridge.getState();
-    this.battleSpeed = state.battleSpeed ?? 1;
+    this.battleSpeed = 1;
     this.currentArena = state.battle?.arena ?? state.arena ?? 'coliseum';
 
     this.fallbackBg = this.add.graphics().setDepth(0);
@@ -103,11 +105,11 @@ export class ArenaScene extends Phaser.Scene {
           }
         }
       }),
-      this.bridge.on('battle:speed', (speed) => {
+      this.bridge.on('battle:speed', () => {
         if (this.isShutDown) return;
-        this.battleSpeed = speed;
-        this.leftFighter?.setAnimSpeedScale(speed);
-        this.rightFighter?.setAnimSpeedScale(speed);
+        this.battleSpeed = 1;
+        this.leftFighter?.setAnimSpeedScale(1);
+        this.rightFighter?.setAnimSpeedScale(1);
       }),
       this.bridge.on('arena:update', (arena) => {
         if (this.isShutDown || this.activeBattle) return;
@@ -117,7 +119,7 @@ export class ArenaScene extends Phaser.Scene {
       this.bridge.on('fighter:update', (fighterData) => {
         if (this.isShutDown || this.activeBattle) return;
         if (fighterData) {
-          if (this.leftFighter) {
+          if (this.leftFighter && this.currentSkinId === fighterData.equippedSkinId) {
             this.leftFighter.updateVisuals(fighterData.appearance, fighterData.equipped);
           } else {
             this.spawnIdlePreviewFighter(fighterData);
@@ -135,6 +137,8 @@ export class ArenaScene extends Phaser.Scene {
 
   private spawnIdlePreviewFighter(data: FighterVisualData): void {
     this.clearFighters();
+    this.currentSkinId = data.equippedSkinId;
+    const playerSkinKey = getSkinById(data.equippedSkinId).rivalSpriteKey;
     const layout = this.computeArenaLayout(this.scale.width, this.scale.height);
     this.leftFighter = new FighterSprite(
       this,
@@ -142,7 +146,8 @@ export class ArenaScene extends Phaser.Scene {
       layout.floorY,
       data.appearance,
       data.equipped,
-      layout.scale
+      layout.scale,
+      { rivalSpriteKey: playerSkinKey }
     );
     this.leftFighter.setFacing('right');
     this.leftFighter.setDepth(10);
@@ -154,6 +159,7 @@ export class ArenaScene extends Phaser.Scene {
 
     const token = ++this.playbackToken;
     this.activeBattle = battle;
+    this.battleSpeed = 1;
     this.currentArena = battle.arena;
     this.applyArenaBackground(battle.arena);
 
@@ -162,13 +168,18 @@ export class ArenaScene extends Phaser.Scene {
     const startLeftX = hasMoveIn ? layout.startLeftX : layout.leftX;
     const startRightX = hasMoveIn ? layout.startRightX : layout.rightX;
 
+    const equippedSkinId = this.bridge.getState().fighter?.equippedSkinId;
+    this.currentSkinId = equippedSkinId;
+    const playerSkinKey = getSkinById(equippedSkinId).rivalSpriteKey;
+
     this.leftFighter = new FighterSprite(
       this,
       startLeftX,
       layout.floorY,
       battle.left.appearance,
       battle.left.equipped,
-      layout.scale
+      layout.scale,
+      { rivalSpriteKey: playerSkinKey }
     );
     this.leftFighter.setFacing('right');
     this.leftFighter.setDepth(10);
@@ -1057,6 +1068,7 @@ export class ArenaScene extends Phaser.Scene {
       this.rightFighter.destroy();
       this.rightFighter = null;
     }
+    this.currentSkinId = undefined;
   }
 
   // ---- Background & Responsive Layout ----

@@ -214,10 +214,10 @@ export const apiClient = {
     });
   },
 
-  importSave(fighter: FighterProfile): Promise<{ fighter: FighterProfile }> {
-    return apiRequest<{ fighter: FighterProfile }>('/api/player/import-save', {
+  equipSkin(skinId: string): Promise<{ fighter: FighterProfile }> {
+    return apiRequest<{ fighter: FighterProfile }>('/api/player/equip-skin', {
       method: 'POST',
-      body: JSON.stringify({ fighter }),
+      body: JSON.stringify({ skinId }),
     });
   },
 
@@ -309,6 +309,13 @@ export const apiClient = {
     return apiRequest<{ fighter: FighterProfile; item: EquipmentItem }>('/api/shop/open-chest', {
       method: 'POST',
       body: JSON.stringify({ chestId }),
+    });
+  },
+
+  buySkin(skinId: string): Promise<{ fighter: FighterProfile }> {
+    return apiRequest<{ fighter: FighterProfile }>('/api/shop/buy-skin', {
+      method: 'POST',
+      body: JSON.stringify({ skinId }),
     });
   },
 

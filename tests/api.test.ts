@@ -249,9 +249,17 @@ describe('Backend REST API End-to-End Integration', () => {
     fighter = res.data.fighter;
   });
 
-  it('GET /api/shop, POST /api/shop/open-chest, POST /api/inventory/equip & /forge work end-to-end', async () => {
-    // Earn enough gold via click-sync under the tighter economy for chest + forge + skill tests
-    for (let i = 0; i < 4 && fighter.gold < 500; i++) {
+  it('GET /api/shop, POST /api/shop/open-chest, POST /api/shop/buy-skin, POST /api/inventory/equip & /forge work end-to-end', async () => {
+    // Verify JSON import-save anti-cheat is strictly blocked (403)
+    const cheatRes = await apiFetch<{ error: string }>('/api/player/import-save', {
+      method: 'POST',
+      token,
+      body: { fighter: { ...fighter, gold: 9999999 } },
+    });
+    expect(cheatRes.status).toBe(403);
+
+    // Earn enough gold via click-sync under the halved Dojo economy for skin (250) + chest (250) + forge + skill
+    for (let i = 0; i < 12 && fighter.gold < 750; i++) {
       const topUp = await apiFetch<{ fighter: FighterProfile }>('/api/player/click-sync', {
         method: 'POST',
         token,
@@ -259,6 +267,26 @@ describe('Backend REST API End-to-End Integration', () => {
       });
       fighter = topUp.data.fighter;
     }
+
+    // Buy & equip a skin with gold
+    const skinBuyRes = await apiFetch<{ fighter: FighterProfile }>('/api/shop/buy-skin', {
+      method: 'POST',
+      token,
+      body: { skinId: 'skin_caillou' },
+    });
+    expect(skinBuyRes.status).toBe(200);
+    expect(skinBuyRes.data.fighter.equippedSkinId).toBe('skin_caillou');
+    expect(skinBuyRes.data.fighter.unlockedSkins).toContain('skin_caillou');
+    fighter = skinBuyRes.data.fighter;
+
+    const skinEquipRes = await apiFetch<{ fighter: FighterProfile }>('/api/player/equip-skin', {
+      method: 'POST',
+      token,
+      body: { skinId: 'skin_hero_dojo' },
+    });
+    expect(skinEquipRes.status).toBe(200);
+    expect(skinEquipRes.data.fighter.equippedSkinId).toBe('skin_hero_dojo');
+    fighter = skinEquipRes.data.fighter;
 
     // 1. Fetch shop
     const shopRes = await apiFetch<{

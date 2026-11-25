@@ -1,14 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Swords,
-  FastForward,
-  SkipForward,
   Trophy,
   Skull,
   Sparkles,
   RotateCcw,
   Lock,
-  Zap,
 } from 'lucide-react';
 import type {
   ArenaTheme,
@@ -26,7 +23,6 @@ import {
 import { resolveItemIconUrl, resolveRivalSprite } from '@/engine/art/aiAssets';
 import { PhaserCanvas } from '@/components/phaser/PhaserCanvas';
 import {
-  CoinPill,
   MbRow,
   SectionCard,
   formatCompact,
@@ -76,7 +72,6 @@ export const ArenaView: React.FC = () => {
   const [lastPvpTargetId, setLastPvpTargetId] = useState<string | null>(null);
 
   const [activeBattle, setActiveBattle] = useState<BattleResult | null>(null);
-  const [battleSpeed, setBattleSpeed] = useState<1 | 2>(fighter?.settings.battleSpeed ?? 1);
   const [liveHud, setLiveHud] = useState<LiveHudState | null>(null);
   const [battleLog, setBattleLog] = useState<CombatEvent[]>([]);
   const [battleFinished, setBattleFinished] = useState(false);
@@ -191,26 +186,12 @@ export const ArenaView: React.FC = () => {
     }
   }, []);
 
-  const handleSkipToResult = () => {
-    if (!activeBattle) return;
-    soundEngine.play('click');
-    setBattleLog(activeBattle.events);
-    handleBattleComplete(activeBattle);
-  };
-
   const handleChallengeOpponent = async (opponentId: string) => {
     if (!fighter) return;
     if (!isOpponentUnlocked(opponentId, defeatedIds)) {
       const prevOpp = getRequiredPreviousOpponent(opponentId);
       addToast(
         `Bats ${prevOpp ? prevOpp.name : 'l’adversaire précédent'} pour débloquer ce combat.`,
-        'error',
-      );
-      return;
-    }
-    if (fighter.energy <= 0) {
-      addToast(
-        'Plus d’énergie d’arène ! Elle se régénère automatiquement ou monte de niveau.',
         'error',
       );
       return;
@@ -230,13 +211,6 @@ export const ArenaView: React.FC = () => {
 
   const handleChallengePvp = async (targetPlayerId: string) => {
     if (!fighter) return;
-    if (fighter.energy <= 0) {
-      addToast(
-        'Plus d’énergie d’arène ! Elle se régénère automatiquement ou monte de niveau.',
-        'error',
-      );
-      return;
-    }
     setLaunchingId(targetPlayerId);
     try {
       const battle = await startPvpBattle(targetPlayerId);
@@ -384,12 +358,8 @@ export const ArenaView: React.FC = () => {
     isFighting ||
     launchingId !== null ||
     rematchLocked ||
-    (!(activeBattle && battleFinished && !lastOpponentId && !lastPvpTargetId) &&
-      fighter.energy <= 0) ||
     (!activeBattle && filter !== 'pvp' && (!selectedOpp || !selectedOppUnlocked)) ||
     (!activeBattle && filter === 'pvp' && !selectedPvp);
-
-  const isOutOfEnergy = fighter.energy <= 0;
 
   const megaLabel =
     launchingId !== null ? (
@@ -398,20 +368,10 @@ export const ArenaView: React.FC = () => {
       'COMBAT EN COURS…'
     ) : activeBattle && battleFinished ? (
       lastOpponentId || lastPvpTargetId ? (
-        isOutOfEnergy ? (
-          <span className="arena-inline-label">
-            ÉNERGIE ÉPUISÉE (0 <Zap size={18} />)
-          </span>
-        ) : (
-          'REVANCHE !'
-        )
+        'REVANCHE !'
       ) : (
         'NOUVEL ADVERSAIRE'
       )
-    ) : isOutOfEnergy ? (
-      <span className="arena-inline-label">
-        ÉNERGIE ÉPUISÉE (0 <Zap size={18} />)
-      </span>
     ) : !selectedOppUnlocked && filter !== 'pvp' ? (
       <span className="arena-inline-label">
         <Lock size={20} /> ADVERSAIRE VERROUILLÉ
@@ -440,8 +400,6 @@ export const ArenaView: React.FC = () => {
     ) : (
       latestEvent?.logText ?? 'Les combattants entrent dans l’arène…'
     )
-  ) : fighter.energy <= 0 ? (
-    'Plus d’énergie d’arène — patiente ou monte de niveau !'
   ) : (
     'Sélectionne un adversaire et clique sur GO !'
   );
@@ -513,7 +471,7 @@ export const ArenaView: React.FC = () => {
                 arena={currentArena}
                 fighter={fighterVisual}
                 battle={activeBattle}
-                battleSpeed={battleSpeed}
+                battleSpeed={1}
                 onBattleEvent={handleBattleEvent}
                 onBattleComplete={handleBattleComplete}
               />
@@ -533,33 +491,6 @@ export const ArenaView: React.FC = () => {
               className={`arena-stage__status ${activeBattle ? 'arena-stage__status--combat' : ''}`}
             >
               <div className="arena-stage__status-text">{statusContent}</div>
-              {activeBattle && (
-                <div className="arena-stage__controls">
-                  <button
-                    type="button"
-                    className={`btn btn--sm arena-stage__ctrl-btn ${
-                      battleSpeed === 2 ? 'btn--gold' : ''
-                    }`}
-                    onClick={() => {
-                      soundEngine.play('click');
-                      setBattleSpeed((s) => (s === 1 ? 2 : 1));
-                    }}
-                  >
-                    <FastForward size={14} />
-                    {battleSpeed}x
-                  </button>
-                  {!battleFinished && (
-                    <button
-                      type="button"
-                      className="btn btn--sm btn--sky arena-stage__ctrl-btn"
-                      onClick={handleSkipToResult}
-                    >
-                      <SkipForward size={14} />
-                      Passer
-                    </button>
-                  )}
-                </div>
-              )}
             </div>
           </section>
 
@@ -621,15 +552,6 @@ export const ArenaView: React.FC = () => {
                   <span className="badge arena-reward-badge" style={{ background: '#e0f2fe' }}>
                     <GameIcon name="scroll" size={16} />+{formatCompact(activeBattle.rewards.xp)} XP
                   </span>
-                  {activeBattle.rewards.gems > 0 && (
-                    <span className="badge arena-reward-badge" style={{ background: '#e6f6ff' }}>
-                      <span
-                        className="coin-pill__icon coin-pill__icon--gem arena-mini-gem"
-                        aria-hidden="true"
-                      />
-                      +{activeBattle.rewards.gems} Gemmes
-                    </span>
-                  )}
                   <span
                     className="badge arena-reward-badge"
                     style={{
@@ -731,12 +653,6 @@ export const ArenaView: React.FC = () => {
             right={
               <div className="arena-opps-right">
                 <span className="arena-wins-label">Victoires : {fighter.progress.arenaWins}</span>
-                <CoinPill
-                  kind="energy"
-                  value={`${fighter.energy}/${fighter.maxEnergy}`}
-                  title="Énergie d'arène"
-                  className="arena-energy-pill"
-                />
               </div>
             }
           >

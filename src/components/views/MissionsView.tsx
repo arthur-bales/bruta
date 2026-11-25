@@ -7,7 +7,6 @@ import {
   Award,
   Sparkles,
   Coins,
-  Gem,
   Star,
 } from 'lucide-react';
 import type { EquipmentItem } from '@shared/types';
@@ -165,12 +164,6 @@ export const MissionsView: React.FC = () => {
                         style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
                       >
                         <Coins size={12} color="#c9820a" />+{mission.rewardGold} Or
-                      </span>
-                      <span
-                        className="arsenal-stat-tag"
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
-                      >
-                        <Gem size={12} color="#2563eb" />+{mission.rewardGems}
                       </span>
                       <span
                         className="arsenal-stat-tag"
@@ -361,13 +354,7 @@ export const MissionsView: React.FC = () => {
                   <div className="daily-tile__title">{reward.title}</div>
                   <div className="daily-tile__rewards">
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                      <Coins size={12} color="#c9820a" />
-                      {reward.gold}
-                    </span>{' '}
-                    •{' '}
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                      <Gem size={12} color="#2563eb" />
-                      {reward.gems}
+                      <Coins size={12} color="#c9820a" />+{reward.gold} Or
                     </span>
                     <br />
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>

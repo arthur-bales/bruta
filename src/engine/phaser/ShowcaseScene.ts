@@ -5,9 +5,10 @@
 import Phaser from 'phaser';
 import type { AnimationName, ArenaTheme } from '@shared/types';
 import { ANIMATION_SPECS } from '@shared/constants';
+import { getSkinById } from '@shared/skinsCatalog';
 import { registerVfxTexturesInPhaser } from '../art/vfxRenderer';
 import { soundEngine, type SoundEffectType } from '../audio/soundEffects';
-import { FighterSprite, preloadHeroAiAssets } from './FighterSprite';
+import { FighterSprite, preloadHeroAiAssets, preloadRivalAiAssets } from './FighterSprite';
 import {
   ARENA_ASSETS,
   type FighterVisualData,
@@ -37,6 +38,7 @@ export class ShowcaseScene extends Phaser.Scene {
   private bgImage: Phaser.GameObjects.Image | null = null;
   private floorGlow: Phaser.GameObjects.Ellipse | null = null;
   private fighter: FighterSprite | null = null;
+  private currentSkinId: string | undefined;
   private petals: AmbientPetal[] = [];
   private activeVfxObjects = new Set<Phaser.GameObjects.GameObject>();
 
@@ -62,6 +64,7 @@ export class ShowcaseScene extends Phaser.Scene {
     }
 
     preloadHeroAiAssets(this);
+    preloadRivalAiAssets(this);
   }
 
   public create(): void {
@@ -194,24 +197,38 @@ export class ShowcaseScene extends Phaser.Scene {
         this.fighter.destroy();
         this.fighter = null;
       }
+      this.currentSkinId = undefined;
       return;
     }
 
     const { x, y, scale } = this.computeFighterLayout(this.scale.width, this.scale.height);
+    const nextSkinId = data.equippedSkinId;
+    const playerSkinKey = getSkinById(nextSkinId).rivalSpriteKey;
+    const skinChanged = this.fighter !== null && this.currentSkinId !== nextSkinId;
+
+    if (skinChanged && this.fighter) {
+      this.fighter.destroy();
+      this.fighter = null;
+    }
 
     if (!this.fighter) {
+      this.currentSkinId = nextSkinId;
       this.fighter = new FighterSprite(
         this,
         x,
         y,
         data.appearance,
         data.equipped,
-        scale
+        scale,
+        { rivalSpriteKey: playerSkinKey }
       );
       this.fighter.setDepth(10);
       this.fighter.setFacing('right');
       this.bindFighterInteraction(this.fighter);
       this.fighter.squashPulse(1.08, 0.92, 180);
+      if (skinChanged && celebrateSwap) {
+        this.spawnEquipBurst(x, y - 92 * scale);
+      }
       return;
     }
 
@@ -531,6 +548,7 @@ export class ShowcaseScene extends Phaser.Scene {
       this.fighter.destroy();
       this.fighter = null;
     }
+    this.currentSkinId = undefined;
 
     for (const obj of this.activeVfxObjects) {
       if (obj.scene) obj.destroy();
