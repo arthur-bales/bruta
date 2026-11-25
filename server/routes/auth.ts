@@ -5,14 +5,14 @@ import {
   computeOfflineEarnings,
   createInitialFighter,
   regenerateEnergy,
-} from '../../shared/progression';
+} from '../../shared/progression.js';
 import type {
   AuthUserSummary,
   FighterProfile,
   GameSessionPayload,
   OfflineEarningsSummary,
-} from '../../shared/types';
-import { db, type DbUser } from '../db/database';
+} from '../../shared/types.js';
+import { db, type DbUser } from '../db/database.js';
 import {
   extractBearerToken,
   hashPassword,
@@ -20,7 +20,7 @@ import {
   signToken,
   verifyPassword,
   verifyToken,
-} from '../middleware/auth';
+} from '../middleware/auth.js';
 
 const router = Router();
 

@@ -1,4 +1,4 @@
-import type { SkillDefinition } from './types';
+import type { SkillDefinition } from './types.js';
 
 export const SKILLS_CATALOG: SkillDefinition[] = [
   // ==========================================================================

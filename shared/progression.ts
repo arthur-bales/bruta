@@ -4,13 +4,13 @@ import {
   MAX_ENERGY,
   STAT_POINTS_PER_LEVEL,
   xpRequiredForLevel,
-} from './constants';
+} from './constants.js';
 import {
   EQUIPMENT_CATALOG,
   getEffectiveItemStats,
   instantiateEquipment,
-} from './equipmentCatalog';
-import { getSkillDefinition } from './skillsCatalog';
+} from './equipmentCatalog.js';
+import { getSkillDefinition } from './skillsCatalog.js';
 import type {
   CoreStats,
   DerivedStats,
@@ -21,7 +21,7 @@ import type {
   OfflineEarningsSummary,
   Rarity,
   ShopStockItem,
-} from './types';
+} from './types.js';
 
 const EQUIPMENT_SLOTS: EquipmentSlot[] = [
   'weapon',

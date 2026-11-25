@@ -1,5 +1,5 @@
-import { instantiateEquipment } from './equipmentCatalog';
-import type { EquippedGear, OpponentDefinition } from './types';
+import { instantiateEquipment } from './equipmentCatalog.js';
+import type { EquippedGear, OpponentDefinition } from './types.js';
 
 function makeGear(
   ids: Partial<Record<keyof EquippedGear, string>>,

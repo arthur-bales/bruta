@@ -1,10 +1,12 @@
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { Pool } from 'pg';
-import { computeDerivedStats } from '../../shared/progression';
-import type { ArenaTheme, EquipmentItem, FighterProfile } from '../../shared/types';
-import { CONFIG } from '../config';
+import { computeDerivedStats } from '../../shared/progression.js';
+import type { ArenaTheme, EquipmentItem, FighterProfile } from '../../shared/types.js';
+import { CONFIG } from '../config.js';
+import { SCHEMA_SQL } from './schemaSql.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -108,8 +110,10 @@ class PostgresDatabaseAdapter implements DatabaseAdapter {
     this.pool = new Pool({
       connectionString,
       ssl: isLocalhost ? undefined : { rejectUnauthorized: false },
-      max: 10,
-      idleTimeoutMillis: 30_000,
+      // Serverless-friendly pool (Vercel spins up many short-lived instances)
+      max: process.env.VERCEL ? 3 : 10,
+      idleTimeoutMillis: process.env.VERCEL ? 10_000 : 30_000,
+      connectionTimeoutMillis: 10_000,
     });
   }
 
@@ -119,9 +123,7 @@ class PostgresDatabaseAdapter implements DatabaseAdapter {
 
   async init(): Promise<void> {
     if (this.initialized) return;
-    const schemaPath = path.resolve(__dirname, 'schema.sql');
-    const schemaSql = fs.readFileSync(schemaPath, 'utf-8');
-    await this.pool.query(schemaSql);
+    await this.pool.query(SCHEMA_SQL);
     this.initialized = true;
   }
 
@@ -339,7 +341,10 @@ class LocalJsonDatabaseAdapter implements DatabaseAdapter {
       filePath ??
       (process.env.LOCAL_DB_PATH
         ? path.resolve(process.env.LOCAL_DB_PATH)
-        : path.resolve(__dirname, '../data/db.json'));
+        : process.env.VERCEL
+          ? // Vercel's filesystem is read-only except /tmp (ephemeral fallback when DATABASE_URL is unset)
+            path.join(os.tmpdir(), 'brute-legends-db.json')
+          : path.resolve(__dirname, '../data/db.json'));
   }
 
   getStorageMode(): 'postgres' | 'local' {

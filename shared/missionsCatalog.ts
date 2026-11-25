@@ -2,7 +2,7 @@ import type {
   DailyRewardDefinition,
   FighterProfile,
   MissionDefinition,
-} from './types';
+} from './types.js';
 
 export const MISSIONS_CATALOG: MissionDefinition[] = [
   // ==========================================================================

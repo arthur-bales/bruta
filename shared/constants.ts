@@ -5,7 +5,7 @@ import type {
   FighterAppearance,
   HairStyle,
   Rarity,
-} from './types';
+} from './types.js';
 
 export const GAME_TITLE = 'Brute Legends';
 

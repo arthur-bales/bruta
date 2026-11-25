@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { SEED_RIVAL_FIGHTERS } from '../../shared/opponentsCatalog';
-import { computeDerivedStats } from '../../shared/progression';
-import type { LeaderboardEntry } from '../../shared/types';
-import { db } from '../db/database';
+import { SEED_RIVAL_FIGHTERS } from '../../shared/opponentsCatalog.js';
+import { computeDerivedStats } from '../../shared/progression.js';
+import type { LeaderboardEntry } from '../../shared/types.js';
+import { db } from '../db/database.js';
 
 const router = Router();
 

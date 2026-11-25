@@ -90,3 +90,14 @@ Chaque combattant est assemblé dynamiquement sur une grille régulière **1280 
 | 8 | `victory` | 6 | 10 | Oui |
 | 9 | `defeat` | 6 | 8 | Non |
 | 10 | `special` | 8 | 14 | Non |
+
+## 🚀 Déploiement Vercel
+
+Le dépôt est prêt pour Vercel (`vercel.json` + fonction serverless `api/index.ts`) :
+
+- Le frontend Vite est servi depuis `dist/`.
+- Toutes les routes `/api/*` sont réécrites vers `api/index.ts`, qui exécute l'API Express.
+- **Variables d'environnement** (Project Settings → Environment Variables) :
+  - `DATABASE_URL` : chaîne de connexion Neon PostgreSQL (**recommandé** : sauvegardes permanentes ; le schéma est créé automatiquement).
+  - `JWT_SECRET` : une longue chaîne aléatoire.
+- Sans `DATABASE_URL`, l'API fonctionne quand même en stockant dans `/tmp` (temporaire : la progression peut être perdue entre deux redémarrages de la fonction).

@@ -3,19 +3,19 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
 import express, { type Application, type NextFunction, type Request, type Response } from 'express';
-import { CONFIG } from './config';
-import { db, ensureDatabaseReady } from './db/database';
-import authRouter from './routes/auth';
-import combatRouter from './routes/combat';
+import { CONFIG } from './config.js';
+import { db, ensureDatabaseReady } from './db/database.js';
+import authRouter from './routes/auth.js';
+import combatRouter from './routes/combat.js';
 import {
   inventoryRouter,
   missionsRouter,
   shopRouter,
   skillsRouter,
   upgradesRouter,
-} from './routes/economy';
-import leaderboardRouter from './routes/leaderboard';
-import playerRouter from './routes/player';
+} from './routes/economy.js';
+import leaderboardRouter from './routes/leaderboard.js';
+import playerRouter from './routes/player.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

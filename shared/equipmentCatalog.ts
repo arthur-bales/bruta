@@ -1,11 +1,11 @@
-import { MAX_FORGE_LEVEL, RARITY_META } from './constants';
+import { MAX_FORGE_LEVEL, RARITY_META } from './constants.js';
 import type {
   CoreStats,
   EquipmentItem,
   EquipmentSpecialEffect,
   EquipmentTemplate,
   Rarity,
-} from './types';
+} from './types.js';
 
 export const RARITY_ORDER: Rarity[] = ['common', 'rare', 'epic', 'legendary', 'mythic'];
 

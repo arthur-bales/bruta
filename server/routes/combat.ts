@@ -4,22 +4,22 @@ import {
   opponentToCombatParticipant,
   simulateCombat,
   type CombatParticipant,
-} from '../../shared/combatEngine';
-import { MAX_INVENTORY_SIZE } from '../../shared/constants';
-import { rollRandomLoot } from '../../shared/equipmentCatalog';
+} from '../../shared/combatEngine.js';
+import { MAX_INVENTORY_SIZE } from '../../shared/constants.js';
+import { rollRandomLoot } from '../../shared/equipmentCatalog.js';
 import {
   getOpponentById,
   OPPONENTS_CATALOG,
   SEED_RIVAL_FIGHTERS,
-} from '../../shared/opponentsCatalog';
+} from '../../shared/opponentsCatalog.js';
 import {
   applyXpAndLevelUp,
   computeClickMetrics,
   regenerateEnergy,
-} from '../../shared/progression';
-import type { BattleResult, EquipmentItem } from '../../shared/types';
-import { db } from '../db/database';
-import { requireAuth } from '../middleware/auth';
+} from '../../shared/progression.js';
+import type { BattleResult, EquipmentItem } from '../../shared/types.js';
+import { db } from '../db/database.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 router.use(requireAuth);

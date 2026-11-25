@@ -7,22 +7,22 @@ import {
   MAX_EQUIPPED_ACTIVE_SKILLS,
   MAX_INVENTORY_SIZE,
   xpRequiredForLevel,
-} from '../../shared/constants';
+} from '../../shared/constants.js';
 import {
   applyXpAndLevelUp,
   computeClickMetrics,
   createInitialFighter,
   regenerateEnergy,
-} from '../../shared/progression';
+} from '../../shared/progression.js';
 import type {
   CoreStats,
   EyeStyle,
   FighterAppearance,
   FighterProfile,
   HairStyle,
-} from '../../shared/types';
-import { db } from '../db/database';
-import { requireAuth } from '../middleware/auth';
+} from '../../shared/types.js';
+import { db } from '../db/database.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 router.use(requireAuth);

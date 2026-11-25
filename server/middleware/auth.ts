@@ -1,8 +1,8 @@
 import bcrypt from 'bcryptjs';
 import type { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import { CONFIG } from '../config';
-import { db, type DbUser } from '../db/database';
+import { CONFIG } from '../config.js';
+import { db, type DbUser } from '../db/database.js';
 
 const BCRYPT_ROUNDS = 10;
 const TOKEN_TTL = '30d';

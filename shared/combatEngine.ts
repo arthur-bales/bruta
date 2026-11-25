@@ -1,6 +1,6 @@
-import { getEffectiveItemStats } from './equipmentCatalog';
-import { computeDerivedStats } from './progression';
-import { getSkillDefinition } from './skillsCatalog';
+import { getEffectiveItemStats } from './equipmentCatalog.js';
+import { computeDerivedStats } from './progression.js';
+import { getSkillDefinition } from './skillsCatalog.js';
 import type {
   AnimationName,
   ArenaTheme,
@@ -15,7 +15,7 @@ import type {
   FighterProfile,
   OpponentDefinition,
   SkillDefinition,
-} from './types';
+} from './types.js';
 
 export interface CombatParticipant {
   id: string;

@@ -3,29 +3,29 @@ import {
   MAX_EQUIPPED_ACTIVE_SKILLS,
   MAX_FORGE_LEVEL,
   MAX_INVENTORY_SIZE,
-} from '../../shared/constants';
+} from '../../shared/constants.js';
 import {
   getForgeUpgradeCost,
   getItemSellValue,
   instantiateEquipment,
   rollRandomLoot,
-} from '../../shared/equipmentCatalog';
+} from '../../shared/equipmentCatalog.js';
 import {
   DAILY_REWARDS_CATALOG,
   getMissionProgress,
   MISSIONS_CATALOG,
-} from '../../shared/missionsCatalog';
+} from '../../shared/missionsCatalog.js';
 import {
   applyXpAndLevelUp,
   CHEST_OFFERS,
   createShopStock,
   regenerateEnergy,
-} from '../../shared/progression';
-import { getSkillDefinition, getSkillUpgradeCost } from '../../shared/skillsCatalog';
-import type { EquipmentItem, EquipmentSlot, FighterProfile, ShopStockItem } from '../../shared/types';
-import { getUpgradeCost, getUpgradeDefinition } from '../../shared/upgradesCatalog';
-import { db } from '../db/database';
-import { requireAuth } from '../middleware/auth';
+} from '../../shared/progression.js';
+import { getSkillDefinition, getSkillUpgradeCost } from '../../shared/skillsCatalog.js';
+import type { EquipmentItem, EquipmentSlot, FighterProfile, ShopStockItem } from '../../shared/types.js';
+import { getUpgradeCost, getUpgradeDefinition } from '../../shared/upgradesCatalog.js';
+import { db } from '../db/database.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const VALID_SLOTS: ReadonlySet<EquipmentSlot> = new Set([
   'weapon',

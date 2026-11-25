@@ -1,4 +1,4 @@
-import type { UpgradeDefinition } from './types';
+import type { UpgradeDefinition } from './types.js';
 
 export const UPGRADES_CATALOG: UpgradeDefinition[] = [
   // ==========================================================================
