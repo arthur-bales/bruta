@@ -135,12 +135,6 @@
   align-items: start;
 }
 
-@media (min-width: 1024px) {
-  .arsenal-top-grid {
-    grid-template-columns: 1.35fr 1fr;
-  }
-}
-
 /* 6-slot Wooden Plank Equipment Board */
 .arsenal-wood-board {
   display: grid;

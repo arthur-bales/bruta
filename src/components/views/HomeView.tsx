@@ -467,7 +467,7 @@ export const HomeView: React.FC = () => {
                 <PhaserCanvas
                   mode="showcase"
                   arena={homeArena}
-                  fighter={{ appearance: fighter.appearance, equipped: fighter.equipped }}
+                  fighter={{ appearance: fighter.appearance, equipped: fighter.equipped, equippedSkinId: fighter.equippedSkinId }}
                   previewAnim={previewAnim}
                 />
                 {tapFeedback && (

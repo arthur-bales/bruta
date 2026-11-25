@@ -159,44 +159,12 @@ export const ProfileView: React.FC = () => {
                 <PhaserCanvas
                   mode="showcase"
                   arena={homeArena}
-                  fighter={{ appearance: fighter.appearance, equipped: fighter.equipped }}
-                  previewAnim={previewAnim}
+                  fighter={{
+                    appearance: fighter.appearance,
+                    equipped: fighter.equipped,
+                    equippedSkinId: fighter.equippedSkinId,
+                  }}
                 />
-              </div>
-            </div>
-
-            <div>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: 8,
-                  gap: 8,
-                }}
-              >
-                <span className="mb-caption" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <Play size={15} color="#e2700c" />
-                  Animations ({ALL_ANIMATIONS.length})
-                </span>
-                <span className="mb-tag">{ANIMATION_SPECS[activeAnimName].label}</span>
-              </div>
-
-              <div className="cell-pill-group">
-                {ALL_ANIMATIONS.map((anim) => {
-                  const spec = ANIMATION_SPECS[anim];
-                  const isSelected = activeAnimName === anim;
-                  return (
-                    <button
-                      key={anim}
-                      type="button"
-                      className={`cell-mini-pill ${isSelected ? 'cell-mini-pill--active' : ''}`}
-                      onClick={() => handlePlayAnim(anim)}
-                    >
-                      {spec.label}
-                    </button>
-                  );
-                })}
               </div>
             </div>
           </div>

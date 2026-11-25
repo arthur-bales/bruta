@@ -42,14 +42,14 @@ const MAIN_TABS: MainTab[] = [
     label: 'Arène',
     sub: 'Combats',
     target: 'arena',
-    views: ['arena', 'leaderboard'],
+    views: ['arena'],
   },
   {
     id: 'arsenal',
     label: 'Arsenal',
     sub: 'Équipement',
     target: 'inventory',
-    views: ['inventory', 'shop', 'skills'],
+    views: ['inventory', 'skills'],
   },
 ];
 
@@ -97,7 +97,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   const subLinks = currentTab
     ? ALL_LINKS.filter((l) => currentTab.views.includes(l.id))
-    : ALL_LINKS.filter((l) => l.id === 'missions' || l.id === 'settings');
+    : [];
 
   return (
     <div className="app-shell">
@@ -137,7 +137,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             );
           })}
           <div className="mb-tabs__extra">
-            {(['missions', 'settings'] as ActiveView[]).map((id) => {
+            {(['shop', 'leaderboard', 'missions', 'settings'] as ActiveView[]).map((id) => {
               const link = ALL_LINKS.find((l) => l.id === id)!;
               const badge = getBadgeCount(id);
               return (

@@ -356,58 +356,6 @@ export const InventoryView: React.FC = () => {
             </p>
           )}
         </SectionCard>
-
-        {/* Live Fighter Preview */}
-        <SectionCard
-          title="Aperçu de ta Brute"
-          right={
-            <button
-              type="button"
-              className="btn btn--sm btn--sky"
-              onClick={() => {
-                soundEngine.play('click');
-                setActiveView('shop');
-              }}
-            >
-              <Sparkles size={14} />
-              Boutique
-            </button>
-          }
-        >
-          <div className="arsenal-stage">
-            <PhaserCanvas
-              mode="showcase"
-              arena={homeArena}
-              fighter={{ appearance: fighter.appearance, equipped: fighter.equipped }}
-              previewAnim={previewAnim}
-            />
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: 8,
-              marginTop: 10,
-              flexWrap: 'wrap',
-            }}
-          >
-            <span className="mb-flavor" style={{ fontSize: '0.86rem' }}>
-              Forge tes armes jusqu’à +{MAX_FORGE_LEVEL} !
-            </span>
-            <button
-              type="button"
-              className="btn btn--sm btn--primary"
-              onClick={() => {
-                soundEngine.play('hit');
-                triggerShowcaseAnim('attack');
-              }}
-            >
-              <Swords size={14} />
-              Tester l’arme
-            </button>
-          </div>
-        </SectionCard>
       </div>
 
       {/* Backpack Section */}
@@ -476,7 +424,7 @@ export const InventoryView: React.FC = () => {
               Aucun objet dans ce filtre
             </strong>
             <span className="mb-flavor" style={{ fontSize: '0.88rem' }}>
-              Combats dans l’Arène ou ouvre des coffres à la Boutique pour agrandir ton arsenal !
+              Combats dans l’Arène pour gagner de nouveaux équipements et agrandir ton arsenal !
             </span>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
               <button
@@ -485,13 +433,6 @@ export const InventoryView: React.FC = () => {
                 onClick={() => setActiveView('arena')}
               >
                 Aller en Arène
-              </button>
-              <button
-                type="button"
-                className="btn btn--sm btn--gold"
-                onClick={() => setActiveView('shop')}
-              >
-                Ouvrir la Boutique
               </button>
             </div>
           </div>

@@ -170,7 +170,7 @@ export const ClickerView: React.FC = () => {
             <PhaserCanvas
               mode="clicker"
               arena="dojo"
-              fighter={{ appearance: fighter.appearance, equipped: fighter.equipped }}
+              fighter={{ appearance: fighter.appearance, equipped: fighter.equipped, equippedSkinId: fighter.equippedSkinId }}
               clickerMetrics={{
                 clickDamage: clickMetrics.clickDamage,
                 goldPerClick: clickMetrics.goldPerClick,

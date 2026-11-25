@@ -224,67 +224,47 @@ export const ArenaView: React.FC = () => {
     }
   };
 
-  // All PvE opponents in strict sequential catalog order
-  const filteredOpponents = useMemo(() => {
-    return OPPONENTS_CATALOG.filter((opp) => {
-      if (filter === 'boss') return opp.isBoss;
-      if (filter === 'normal') return !opp.isBoss;
-      return true;
-    });
-  }, [filter]);
+  // Strict linear ladder: next undefeated opponent in OPPONENTS_CATALOG (no choice)
+  const currentSequentialOpp = useMemo(() => {
+    return (
+      OPPONENTS_CATALOG.find((opp) => !defeatedSet.has(opp.id)) ??
+      OPPONENTS_CATALOG[OPPONENTS_CATALOG.length - 1]
+    );
+  }, [defeatedSet]);
 
   const unlockedCount = useMemo(
     () => OPPONENTS_CATALOG.filter((opp) => isOpponentUnlocked(opp.id, defeatedIds)).length,
     [defeatedIds],
   );
 
-  const unlockedFilteredOpponents = useMemo(
-    () => filteredOpponents.filter((opp) => isOpponentUnlocked(opp.id, defeatedIds)),
-    [filteredOpponents, defeatedIds],
-  );
-
-  // Latest unlocked (not-yet-defeated) opponent if available, else first unlocked opponent
-  const defaultUnlockedOpp = useMemo(() => {
-    const latestNotDefeated = [...unlockedFilteredOpponents]
-      .reverse()
-      .find((opp) => !defeatedSet.has(opp.id));
-    return latestNotDefeated ?? unlockedFilteredOpponents[0] ?? null;
-  }, [unlockedFilteredOpponents, defeatedSet]);
-
-  // Keep selectedOppId valid and never stuck on a locked opponent; advance on new win
+  // Keep selectedOppId strictly locked to currentSequentialOpp
   useEffect(() => {
-    if (filter === 'pvp') return;
-    const grew = defeatedIds.length > prevDefeatedLenRef.current;
     prevDefeatedLenRef.current = defeatedIds.length;
-
-    if (
-      grew ||
-      !selectedOppId ||
-      !unlockedFilteredOpponents.some((o) => o.id === selectedOppId)
-    ) {
-      setSelectedOppId(defaultUnlockedOpp?.id ?? null);
-    }
-  }, [unlockedFilteredOpponents, selectedOppId, defaultUnlockedOpp, filter, defeatedIds.length]);
+    setSelectedOppId(currentSequentialOpp?.id ?? null);
+  }, [currentSequentialOpp, defeatedIds.length]);
 
   const fighterVisual = useMemo(
-    () => (fighter ? { appearance: fighter.appearance, equipped: fighter.equipped } : undefined),
-    [fighter?.appearance, fighter?.equipped],
+    () =>
+      fighter
+        ? {
+            appearance: fighter.appearance,
+            equipped: fighter.equipped,
+            equippedSkinId: fighter.equippedSkinId,
+          }
+        : undefined,
+    [fighter?.appearance, fighter?.equipped, fighter?.equippedSkinId],
   );
 
   if (!fighter || !derivedStats) return null;
 
-  const selectedOpp =
-    unlockedFilteredOpponents.find((o) => o.id === selectedOppId) ?? defaultUnlockedOpp;
+  const selectedOpp = currentSequentialOpp;
   const selectedOppUnlocked = selectedOpp
     ? isOpponentUnlocked(selectedOpp.id, defeatedIds)
     : false;
   const selectedOppDerived = selectedOpp
     ? computeDerivedStats(selectedOpp.baseStats, selectedOpp.level, selectedOpp.equipped)
     : null;
-  const selectedPvp =
-    filter === 'pvp'
-      ? pvpRivals.find((r) => r.playerId === selectedPvpId) ?? pvpRivals[0] ?? null
-      : null;
+  const selectedPvp = null as LeaderboardEntry | null;
 
   const isFighting = Boolean(activeBattle && !battleFinished);
   const playerWon = activeBattle ? activeBattle.winner === 'left' : false;
@@ -632,163 +612,54 @@ export const ArenaView: React.FC = () => {
               <div className="arena-result__actions">
                 <button
                   type="button"
-                  className="btn btn--sm"
+                  className="btn btn--sm btn--primary"
                   onClick={() => {
                     soundEngine.play('click');
                     setActiveBattle(null);
                   }}
                 >
                   <Swords size={15} />
-                  Choisir un autre adversaire
+                  {playerWon ? 'Adversaire suivant' : 'Réessayer'}
                 </button>
               </div>
             </SectionCard>
           )}
         </div>
 
-        {/* RIGHT COLUMN (PC) / MIDDLE (Mobile): Opponents Picker */}
+        {/* RIGHT COLUMN (PC) / MIDDLE (Mobile): Single Sequential Arena Ladder */}
         <div className="arena-opps-col">
           <SectionCard
-            title="ADVERSAIRES DE L'ARÈNE"
+            title="PARCOURS DE L'ARÈNE"
             right={
               <div className="arena-opps-right">
-                <span className="arena-wins-label">Victoires : {fighter.progress.arenaWins}</span>
+                <span className="arena-wins-label">
+                  Étape {Math.min(unlockedCount, OPPONENTS_CATALOG.length)}/{OPPONENTS_CATALOG.length} • Victoires : {fighter.progress.arenaWins}
+                </span>
               </div>
             }
           >
-            <div className="arena-filter-tabs">
-              {(
-                [
-                  { id: 'all', label: `PvE (${unlockedCount}/${OPPONENTS_CATALOG.length})`, icon: null },
-                  { id: 'normal', label: 'Combattants', icon: null },
-                  { id: 'boss', label: 'Boss', icon: 'boss' as const },
-                  { id: 'pvp', label: 'PvP', icon: 'sword' as const },
-                ] as const
-              ).map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  className={`arena-filter-tab ${filter === tab.id ? 'arena-filter-tab--active' : ''}`}
-                  onClick={() => {
-                    soundEngine.play('click');
-                    setFilter(tab.id);
-                  }}
-                >
-                  {tab.icon && <GameIcon name={tab.icon} size={16} rounded={tab.icon === 'boss'} />}
-                  <span>{tab.label}</span>
-                </button>
-              ))}
-            </div>
+            <div className="arena-opps-list">
+              {OPPONENTS_CATALOG.map((opp, idx) => {
+                const unlocked = isOpponentUnlocked(opp.id, defeatedIds);
+                const isDefeated = defeatedSet.has(opp.id);
+                const isCurrent = selectedOpp?.id === opp.id;
+                const prevOpp = getRequiredPreviousOpponent(opp.id);
 
-            {/* PvP TAB CONTENT */}
-            {filter === 'pvp' ? (
-              loadingPvp ? (
-                <div className="lb-empty">Chargement des rivaux PvP…</div>
-              ) : pvpRivals.length === 0 ? (
-                <div className="lb-empty">Aucun rival PvP disponible pour le moment.</div>
-              ) : (
-                <div className="arena-opps-list">
-                  {pvpRivals.map((rival) => {
-                    const isSelected = selectedPvp?.playerId === rival.playerId;
-                    const spriteUrl = resolveRivalSprite(`${rival.playerId} ${rival.name}`).url;
-                    return (
-                      <MbRow
-                        key={rival.playerId}
-                        state={isSelected ? 'active' : 'default'}
-                        icon={<img src={spriteUrl} alt={rival.name} />}
-                        title={
-                          <span className="arena-row-title-wrap">
-                            <span>{rival.name}</span>
-                            {isSelected && <span className="mb-tag mb-tag--orange">CIBLE</span>}
-                            <span className="mb-tag">NIV. {rival.level}</span>
-                          </span>
-                        }
-                        desc={`${rival.title} • ${rival.wins}V/${rival.losses}D`}
-                        right={
-                          <div className="arena-row-rewards">
-                            <span className="arena-row-rewards__gold">
-                              <GameIcon name="crown" size={15} />
-                              {rival.rating}
-                            </span>
-                            <span className="arena-row-rewards__xp arena-row-rewards__power">
-                              <GameIcon name="sword" size={14} />
-                              {rival.powerScore}
-                            </span>
-                          </div>
-                        }
-                        onClick={() => {
-                          soundEngine.play('click');
-                          if (activeBattle && battleFinished) setActiveBattle(null);
-                          setSelectedPvpId(rival.playerId);
-                        }}
-                      />
-                    );
-                  })}
-                </div>
-              )
-            ) : (
-              /* PvE SEQUENTIAL LADDER LIST (Mobile + PC vertical MbRow list) */
-              <div className="arena-opps-list">
-                {filteredOpponents.map((opp) => {
-                  const unlocked = isOpponentUnlocked(opp.id, defeatedIds);
-                  const isDefeated = defeatedSet.has(opp.id);
-                  const isSelected = unlocked && selectedOpp?.id === opp.id;
-                  const prevOpp = getRequiredPreviousOpponent(opp.id);
-
-                  if (!unlocked) {
-                    return (
-                      <MbRow
-                        key={opp.id}
-                        state="locked"
-                        className="arena-opp-card--locked"
-                        icon={<Lock size={20} color="#9a7656" />}
-                        title={
-                          <span className="arena-row-title-wrap">
-                            <span>{opp.name}</span>
-                            <span className="mb-tag">NIV. {opp.level}</span>
-                            {opp.isBoss && <span className="mb-tag">BOSS</span>}
-                          </span>
-                        }
-                        desc={`Bats ${prevOpp ? prevOpp.name : 'le rival précédent'} pour débloquer`}
-                        right={
-                          <div className="arena-row-rewards">
-                            <span className="arena-row-rewards__gold">
-                              +{formatCompact(opp.rewardGold)}
-                              <span className="arena-mini-coin" aria-hidden="true" />
-                            </span>
-                            <span className="arena-row-rewards__xp">
-                              +{formatCompact(opp.rewardXp)} XP
-                            </span>
-                          </div>
-                        }
-                      />
-                    );
-                  }
-
-                  const portraitUrl = resolveRivalSprite(`${opp.id} ${opp.name}`).url;
-
+                if (!unlocked) {
                   return (
                     <MbRow
                       key={opp.id}
-                      state={isSelected ? 'active' : 'default'}
-                      className={opp.isBoss ? 'arena-opp-row--boss' : ''}
-                      icon={<img src={portraitUrl} alt={opp.name} />}
+                      state="locked"
+                      className="arena-opp-card--locked"
+                      icon={<Lock size={20} color="#9a7656" />}
                       title={
                         <span className="arena-row-title-wrap">
-                          <span>{opp.name}</span>
-                          {isSelected && <span className="mb-tag mb-tag--orange">CIBLE</span>}
-                          {isDefeated && <span className="mb-tag mb-tag--olive">VAINCU ✓</span>}
+                          <span>#{idx + 1} {opp.name}</span>
+                          <span className="mb-tag">NIV. {opp.level}</span>
                           {opp.isBoss && <span className="mb-tag">BOSS</span>}
                         </span>
                       }
-                      desc={
-                        <span className="arena-row-desc-inline">
-                          <GameIcon name={resolveArenaIconName(opp.arena)} size={14} rounded />
-                          <span>
-                            {opp.title} • Niv.{opp.level}
-                          </span>
-                        </span>
-                      }
+                      desc={`Bats ${prevOpp ? prevOpp.name : 'le rival précédent'} pour débloquer`}
                       right={
                         <div className="arena-row-rewards">
                           <span className="arena-row-rewards__gold">
@@ -800,16 +671,49 @@ export const ArenaView: React.FC = () => {
                           </span>
                         </div>
                       }
-                      onClick={() => {
-                        soundEngine.play('click');
-                        if (activeBattle && battleFinished) setActiveBattle(null);
-                        setSelectedOppId(opp.id);
-                      }}
                     />
                   );
-                })}
-              </div>
-            )}
+                }
+
+                const portraitUrl = resolveRivalSprite(`${opp.id} ${opp.name}`).url;
+
+                return (
+                  <MbRow
+                    key={opp.id}
+                    state={isCurrent ? 'active' : 'default'}
+                    className={opp.isBoss ? 'arena-opp-row--boss' : ''}
+                    icon={<img src={portraitUrl} alt={opp.name} />}
+                    title={
+                      <span className="arena-row-title-wrap">
+                        <span>#{idx + 1} {opp.name}</span>
+                        {isCurrent && <span className="mb-tag mb-tag--orange">CIBLE</span>}
+                        {isDefeated && <span className="mb-tag mb-tag--olive">VAINCU ✓</span>}
+                        {opp.isBoss && <span className="mb-tag">BOSS</span>}
+                      </span>
+                    }
+                    desc={
+                      <span className="arena-row-desc-inline">
+                        <GameIcon name={resolveArenaIconName(opp.arena)} size={14} rounded />
+                        <span>
+                          {opp.title} • Niv.{opp.level}
+                        </span>
+                      </span>
+                    }
+                    right={
+                      <div className="arena-row-rewards">
+                        <span className="arena-row-rewards__gold">
+                          +{formatCompact(opp.rewardGold)}
+                          <span className="arena-mini-coin" aria-hidden="true" />
+                        </span>
+                        <span className="arena-row-rewards__xp">
+                          +{formatCompact(opp.rewardXp)} XP
+                        </span>
+                      </div>
+                    }
+                  />
+                );
+              })}
+            </div>
           </SectionCard>
         </div>
 
