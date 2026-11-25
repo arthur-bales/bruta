@@ -215,89 +215,12 @@ export const HomeView: React.FC = () => {
 
   return (
     <div className="cell-page">
-      {/* Offline Earnings Welcome Banner */}
-      {offlineEarnings && (
-        <div className="cell-banner animate-pop">
-          <div className="cell-banner__left">
-            <div className="cell-banner__icon">
-              <Coins size={22} />
-            </div>
-            <div>
-              <div className="cell-banner__title">
-                Tes apprentis ont travaillé {formatDuration(offlineEarnings.secondsAway)} !
-              </div>
-              <p className="cell-banner__sub">
-                +{formatCompact(offlineEarnings.goldEarned)} Or
-                {offlineEarnings.xpEarned > 0 ? ` & +${formatCompact(offlineEarnings.xpEarned)} XP` : ''} crédités
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            className="btn btn--sm btn--gold"
-            onClick={() => {
-              soundEngine.play('coin');
-              dismissOfflineEarnings();
-            }}
-          >
-            <X size={15} />
-            Super !
-          </button>
-        </div>
-      )}
-
-      {/* Daily Reward / Claimable Missions Compact Banner */}
-      {(canClaimDaily || claimableMissionsCount > 0) && (
-        <div className="cell-banner">
-          <div className="cell-banner__left">
-            <div className="cell-banner__icon">
-              <Gift size={20} />
-            </div>
-            <div>
-              <div className="cell-banner__title">
-                {canClaimDaily
-                  ? `Cadeau du Jour ${(fighter.dailyStreak % 7) + 1} disponible !`
-                  : `${claimableMissionsCount} récompense(s) de mission prête(s) !`}
-              </div>
-              <p className="cell-banner__sub">
-                Récupère ton or, ton XP et tes coffres bonus du dojo.
-              </p>
-            </div>
-          </div>
-          <div className="cell-banner__actions">
-            {canClaimDaily && (
-              <button
-                type="button"
-                className="btn btn--sm btn--gold"
-                disabled={claimingDaily}
-                onClick={() => void handleQuickDailyClaim()}
-              >
-                <Gift size={15} />
-                {claimingDaily ? 'En cours…' : 'Réclamer'}
-              </button>
-            )}
-            <button
-              type="button"
-              className="btn btn--sm"
-              onClick={() => {
-                soundEngine.play('click');
-                setActiveView('missions');
-              }}
-            >
-              <Sparkles size={15} />
-              Missions
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Main Cellule Grid:
-          Mobile: Hero -> Stats -> Arsenal -> Training -> Arena CTA
-          PC: Left (Arsenal + Training) | Right (Hero + Stats + Arena CTA) */}
+          Mobile (<1024px): Banners -> Hero -> Stats -> Arsenal -> Training -> Arena CTA
+          PC (>=1024px): Left (Arsenal + Skills) | Center (Hero + Stats) | Right (Banners + Training + Arena CTA) */}
       <div className="cell-grid">
-        {/* LEFT COLUMN (PC) */}
+        {/* LEFT COLUMN (PC): Wooden Weapons Board + 12 Skill Tiles Grid */}
         <div className="cell-col-left">
-          {/* Wooden Weapons Rack + Skill Tiles Grid (IMG_4201) */}
           <SectionCard
             className="cell-card-arsenal"
             title="Armes et équipements de combat"
@@ -387,60 +310,11 @@ export const HomeView: React.FC = () => {
               </div>
             </div>
           </SectionCard>
-
-          {/* Quick Training Upgrades (IMG_4207 bottom) */}
-          <SectionCard
-            className="cell-card-training"
-            title="Entraînement & Compétences"
-            right={
-              <button
-                type="button"
-                className="cell-mini-pill"
-                onClick={() => {
-                  soundEngine.play('click');
-                  setActiveView('upgrades');
-                }}
-              >
-                Tout voir →
-              </button>
-            }
-          >
-            <div className="mb-stack mb-stack--sm">
-              {quickUpgrades.map((upg) => {
-                const currentLvl = fighter.upgrades[upg.id] ?? 0;
-                const isMax = currentLvl >= upg.maxLevel;
-                const cost = getUpgradeCost(upg, currentLvl);
-                const canAfford = effectiveGold >= cost;
-
-                return (
-                  <MbRow
-                    key={upg.id}
-                    icon={<GameIcon name={resolveUpgradeIconName(upg.id)} size={32} />}
-                    title={upg.name}
-                    level={`Niv.${currentLvl}`}
-                    desc={upg.effectLabel}
-                    right={
-                      isMax ? (
-                        <span className="mb-tag mb-tag--olive">MAX</span>
-                      ) : (
-                        <PriceButton
-                          cost={cost}
-                          disabled={!canAfford || buyingId === upg.id}
-                          onClick={() => void handleQuickBuy(upg.id)}
-                          title={`Améliorer ${upg.name} pour ${cost} Or`}
-                        />
-                      )
-                    }
-                  />
-                );
-              })}
-            </div>
-          </SectionCard>
         </div>
 
-        {/* RIGHT COLUMN (PC) */}
-        <div className="cell-col-right">
-          {/* Card 1: Hero Stage Card (IMG_4207 top) */}
+        {/* CENTER COLUMN (PC): Hero Stage Card + Stats Card */}
+        <div className="cell-col-center">
+          {/* Card 1: Hero Stage Card */}
           <SectionCard className="cell-card-hero">
             <div className="cell-hero-head">
               <div className="cell-hero-name">
@@ -477,7 +351,7 @@ export const HomeView: React.FC = () => {
                 )}
               </div>
 
-              {/* Dark-brown equipment strip (IMG_4207) */}
+              {/* Dark-brown equipment strip */}
               <div
                 className="cell-equip-strip"
                 role="button"
@@ -566,7 +440,7 @@ export const HomeView: React.FC = () => {
             </div>
           </SectionCard>
 
-          {/* Card 2: Heart HP + Segmented Stats (IMG_4207 middle & IMG_4201 right) */}
+          {/* Card 2: Heart HP + Segmented Stats */}
           <SectionCard className="cell-card-stats">
             <div className="cell-stats-head">
               <HeartHp hp={derivedStats.maxHp} />
@@ -646,12 +520,140 @@ export const HomeView: React.FC = () => {
               </span>
             </div>
           </SectionCard>
+        </div>
 
-          {/* Giant Torn-Parchment ARÈNE CTA (IMG_4201 bottom right) */}
+        {/* RIGHT COLUMN (PC): Daily/Offline Banners + Training Upgrades + Arena CTA */}
+        <div className="cell-col-right">
+          {/* Offline Earnings Welcome Banner */}
+          {offlineEarnings && (
+            <div className="cell-banner cell-card-banner animate-pop">
+              <div className="cell-banner__left">
+                <div className="cell-banner__icon">
+                  <Coins size={20} />
+                </div>
+                <div>
+                  <div className="cell-banner__title">
+                    Tes apprentis ont travaillé {formatDuration(offlineEarnings.secondsAway)} !
+                  </div>
+                  <p className="cell-banner__sub">
+                    +{formatCompact(offlineEarnings.goldEarned)} Or
+                    {offlineEarnings.xpEarned > 0 ? ` & +${formatCompact(offlineEarnings.xpEarned)} XP` : ''} crédités
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="btn btn--sm btn--gold"
+                onClick={() => {
+                  soundEngine.play('coin');
+                  dismissOfflineEarnings();
+                }}
+              >
+                <X size={14} />
+                Super !
+              </button>
+            </div>
+          )}
+
+          {/* Daily Reward / Claimable Missions Compact Banner */}
+          {(canClaimDaily || claimableMissionsCount > 0) && (
+            <div className="cell-banner cell-card-banner">
+              <div className="cell-banner__left">
+                <div className="cell-banner__icon">
+                  <Gift size={18} />
+                </div>
+                <div>
+                  <div className="cell-banner__title">
+                    {canClaimDaily
+                      ? `Cadeau du Jour ${(fighter.dailyStreak % 7) + 1} disponible !`
+                      : `${claimableMissionsCount} récompense(s) prête(s) !`}
+                  </div>
+                  <p className="cell-banner__sub">
+                    Récupère ton or, ton XP et tes coffres bonus.
+                  </p>
+                </div>
+              </div>
+              <div className="cell-banner__actions">
+                {canClaimDaily && (
+                  <button
+                    type="button"
+                    className="btn btn--sm btn--gold"
+                    disabled={claimingDaily}
+                    onClick={() => void handleQuickDailyClaim()}
+                  >
+                    <Gift size={14} />
+                    {claimingDaily ? 'En cours…' : 'Réclamer'}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="btn btn--sm"
+                  onClick={() => {
+                    soundEngine.play('click');
+                    setActiveView('missions');
+                  }}
+                >
+                  <Sparkles size={14} />
+                  Missions
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Quick Training Upgrades */}
+          <SectionCard
+            className="cell-card-training"
+            title="Entraînement & Compétences"
+            right={
+              <button
+                type="button"
+                className="cell-mini-pill"
+                onClick={() => {
+                  soundEngine.play('click');
+                  setActiveView('upgrades');
+                }}
+              >
+                Tout voir →
+              </button>
+            }
+          >
+            <div className="mb-stack mb-stack--sm">
+              {quickUpgrades.map((upg) => {
+                const currentLvl = fighter.upgrades[upg.id] ?? 0;
+                const isMax = currentLvl >= upg.maxLevel;
+                const cost = getUpgradeCost(upg, currentLvl);
+                const canAfford = effectiveGold >= cost;
+
+                return (
+                  <MbRow
+                    key={upg.id}
+                    icon={<GameIcon name={resolveUpgradeIconName(upg.id)} size={32} />}
+                    title={upg.name}
+                    level={`Niv.${currentLvl}`}
+                    desc={upg.effectLabel}
+                    right={
+                      isMax ? (
+                        <span className="mb-tag mb-tag--olive">MAX</span>
+                      ) : (
+                        <PriceButton
+                          cost={cost}
+                          disabled={!canAfford || buyingId === upg.id}
+                          onClick={() => void handleQuickBuy(upg.id)}
+                          title={`Améliorer ${upg.name} pour ${cost} Or`}
+                        />
+                      )
+                    }
+                  />
+                );
+              })}
+            </div>
+          </SectionCard>
+
+          {/* Giant Torn-Parchment ARÈNE CTA */}
           <div className="cell-card-arena cell-arena-box">
             <p className="mb-flavor" style={{ margin: 0 }}>
               Si tu veux te défouler sur quelqu&apos;un, c&apos;est par ici ! Plein de Brutes
-              t&apos;attendent dans l&apos;Arène pour échanger des mandales !
+              t&apos;attendent dans l&apos;Arène !
             </p>
             <ParchmentButton
               onClick={() => {
@@ -659,7 +661,7 @@ export const HomeView: React.FC = () => {
                 setActiveView('arena');
               }}
             >
-              <Swords size={26} />
+              <Swords size={24} />
               ARÈNE
             </ParchmentButton>
           </div>

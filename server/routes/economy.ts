@@ -353,11 +353,12 @@ shopRouter.post('/buy-skin', async (req, res, next) => {
       return;
     }
 
+    const defaultSkin = fighter.gender === 'female' ? 'skin_female_dojo' : 'skin_male_dojo';
     const unlocked = Array.isArray(fighter.unlockedSkins)
       ? [...fighter.unlockedSkins]
-      : ['skin_hero_dojo'];
-    if (!unlocked.includes('skin_hero_dojo')) {
-      unlocked.unshift('skin_hero_dojo');
+      : [defaultSkin];
+    if (!unlocked.includes(defaultSkin)) {
+      unlocked.unshift(defaultSkin);
     }
 
     if (unlocked.includes(skin.id)) {

@@ -258,8 +258,8 @@ describe('Backend REST API End-to-End Integration', () => {
     });
     expect(cheatRes.status).toBe(403);
 
-    // Earn enough gold via click-sync under the halved Dojo economy for skin (250) + chest (250) + forge + skill
-    for (let i = 0; i < 12 && fighter.gold < 750; i++) {
+    // Earn enough gold via click-sync under the halved Dojo economy for skin (350) + chest (250) + forge + skill
+    for (let i = 0; i < 16 && fighter.gold < 850; i++) {
       const topUp = await apiFetch<{ fighter: FighterProfile }>('/api/player/click-sync', {
         method: 'POST',
         token,
@@ -268,24 +268,24 @@ describe('Backend REST API End-to-End Integration', () => {
       fighter = topUp.data.fighter;
     }
 
-    // Buy & equip a skin with gold
+    // Buy & equip an exclusive skin with gold
     const skinBuyRes = await apiFetch<{ fighter: FighterProfile }>('/api/shop/buy-skin', {
       method: 'POST',
       token,
-      body: { skinId: 'skin_caillou' },
+      body: { skinId: 'skin_male_azur' },
     });
     expect(skinBuyRes.status).toBe(200);
-    expect(skinBuyRes.data.fighter.equippedSkinId).toBe('skin_caillou');
-    expect(skinBuyRes.data.fighter.unlockedSkins).toContain('skin_caillou');
+    expect(skinBuyRes.data.fighter.equippedSkinId).toBe('skin_male_azur');
+    expect(skinBuyRes.data.fighter.unlockedSkins).toContain('skin_male_azur');
     fighter = skinBuyRes.data.fighter;
 
     const skinEquipRes = await apiFetch<{ fighter: FighterProfile }>('/api/player/equip-skin', {
       method: 'POST',
       token,
-      body: { skinId: 'skin_hero_dojo' },
+      body: { skinId: 'skin_male_dojo' },
     });
     expect(skinEquipRes.status).toBe(200);
-    expect(skinEquipRes.data.fighter.equippedSkinId).toBe('skin_hero_dojo');
+    expect(skinEquipRes.data.fighter.equippedSkinId).toBe('skin_male_dojo');
     fighter = skinEquipRes.data.fighter;
 
     // 1. Fetch shop

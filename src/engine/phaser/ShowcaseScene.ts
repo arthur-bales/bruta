@@ -203,7 +203,7 @@ export class ShowcaseScene extends Phaser.Scene {
 
     const { x, y, scale } = this.computeFighterLayout(this.scale.width, this.scale.height);
     const nextSkinId = data.equippedSkinId;
-    const playerSkinKey = getSkinById(nextSkinId).rivalSpriteKey;
+    const playerSheetKey = getSkinById(nextSkinId).spritesheetKey;
     const skinChanged = this.fighter !== null && this.currentSkinId !== nextSkinId;
 
     if (skinChanged && this.fighter) {
@@ -220,7 +220,7 @@ export class ShowcaseScene extends Phaser.Scene {
         data.appearance,
         data.equipped,
         scale,
-        { rivalSpriteKey: playerSkinKey }
+        { heroSkinKey: playerSheetKey }
       );
       this.fighter.setDepth(10);
       this.fighter.setFacing('right');

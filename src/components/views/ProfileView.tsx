@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import type { AnimationName, CoreStats } from '@shared/types';
 import { ALL_ANIMATIONS, ANIMATION_SPECS, RARITY_META } from '@shared/constants';
-import { DEFAULT_SKIN_ID, SKINS_CATALOG } from '@shared/skinsCatalog';
+import { SKINS_CATALOG, getDefaultSkinForGender } from '@shared/skinsCatalog';
 import { PhaserCanvas } from '@/components/phaser/PhaserCanvas';
 import {
   HeartHp,
@@ -63,8 +63,9 @@ export const ProfileView: React.FC = () => {
 
   if (!fighter || !derivedStats) return null;
 
-  const unlockedSkinIds = fighter.unlockedSkins ?? [DEFAULT_SKIN_ID];
-  const equippedSkinId = fighter.equippedSkinId ?? DEFAULT_SKIN_ID;
+  const defaultSkinId = getDefaultSkinForGender(fighter.gender);
+  const unlockedSkinIds = fighter.unlockedSkins?.length ? fighter.unlockedSkins : [defaultSkinId];
+  const equippedSkinId = fighter.equippedSkinId ?? defaultSkinId;
   const ownedSkins = SKINS_CATALOG.filter((s) => unlockedSkinIds.includes(s.id));
 
   const statScale = Math.max(
@@ -391,6 +392,7 @@ export const ProfileView: React.FC = () => {
           {ownedSkins.map((skin) => {
             const isEquipped = equippedSkinId === skin.id;
             const rarityMeta = RARITY_META[skin.rarity];
+            const genderLabel = skin.gender === 'female' ? 'Femme' : 'Homme';
 
             return (
               <div
@@ -405,18 +407,38 @@ export const ProfileView: React.FC = () => {
                 <div>
                   <div className="shop-skin-card__name">{skin.name}</div>
                   <div className="shop-skin-card__title">{skin.title}</div>
-                  <span
-                    className="badge"
+                  <div
                     style={{
-                      background: '#fffdf3',
-                      color: rarityMeta.color,
-                      borderColor: rarityMeta.border,
-                      fontSize: '0.7rem',
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      gap: 5,
                       marginTop: 5,
                     }}
                   >
-                    {rarityMeta.label}
-                  </span>
+                    <span
+                      className="badge"
+                      style={{
+                        background: '#fffdf3',
+                        color: rarityMeta.color,
+                        borderColor: rarityMeta.border,
+                        fontSize: '0.7rem',
+                      }}
+                    >
+                      {rarityMeta.label}
+                    </span>
+                    <span
+                      className="badge"
+                      style={{
+                        background: skin.gender === 'female' ? '#fff0f6' : '#eef6ff',
+                        color: skin.gender === 'female' ? '#a62c65' : '#235c9c',
+                        borderColor: skin.gender === 'female' ? '#d98cb1' : '#8cb3dc',
+                        fontSize: '0.7rem',
+                      }}
+                    >
+                      {genderLabel}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="shop-skin-card__footer">

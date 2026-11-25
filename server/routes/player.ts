@@ -107,6 +107,26 @@ router.put('/customize', async (req, res, next) => {
       fighter.appearance = nextAppearance;
     }
 
+    if (req.body?.gender === 'male' || req.body?.gender === 'female') {
+      const nextGender = req.body.gender as 'male' | 'female';
+      const defaultSkin = nextGender === 'female' ? 'skin_female_dojo' : 'skin_male_dojo';
+      const unlocked = Array.isArray(fighter.unlockedSkins) ? [...fighter.unlockedSkins] : [];
+      if (!unlocked.includes(defaultSkin)) {
+        unlocked.unshift(defaultSkin);
+      }
+      fighter.gender = nextGender;
+      fighter.unlockedSkins = unlocked;
+      // Switch to the matching gender starter skin if still on a starter/legacy skin
+      if (
+        !fighter.equippedSkinId ||
+        fighter.equippedSkinId === 'skin_hero_dojo' ||
+        fighter.equippedSkinId === 'skin_male_dojo' ||
+        fighter.equippedSkinId === 'skin_female_dojo'
+      ) {
+        fighter.equippedSkinId = defaultSkin;
+      }
+    }
+
     fighter.isCustomized = true;
     fighter.lastActiveAt = Date.now();
     const saved = await db.saveFighter(userId, fighter);
@@ -277,11 +297,12 @@ router.post('/equip-skin', async (req, res, next) => {
       return;
     }
 
+    const defaultSkin = fighter.gender === 'female' ? 'skin_female_dojo' : 'skin_male_dojo';
     const unlocked = Array.isArray(fighter.unlockedSkins)
-      ? fighter.unlockedSkins
-      : ['skin_hero_dojo'];
-    if (!unlocked.includes('skin_hero_dojo')) {
-      unlocked.unshift('skin_hero_dojo');
+      ? [...fighter.unlockedSkins]
+      : [defaultSkin];
+    if (!unlocked.includes(defaultSkin)) {
+      unlocked.unshift(defaultSkin);
     }
 
     if (!unlocked.includes(skinId)) {

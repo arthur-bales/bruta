@@ -5,6 +5,7 @@
 import Phaser from 'phaser';
 import type { AnimationName, EquippedGear, FighterAppearance } from '@shared/types';
 import { ALL_ANIMATIONS, ANIMATION_SPECS, SPRITE_FRAME_SIZE } from '@shared/constants';
+import { SKINS_CATALOG } from '@shared/skinsCatalog';
 import {
   AI_DUMMY_ASSET,
   AI_HERO_SPRITESHEET,
@@ -22,6 +23,7 @@ export interface PlayAnimOptions {
 
 export interface FighterSpriteOptions {
   rivalSpriteKey?: string;
+  heroSkinKey?: string;
 }
 
 type RenderMode = 'ai_hero' | 'ai_rival' | 'procedural_fallback';
@@ -44,7 +46,6 @@ interface RivalPoseState {
   alpha: number;
 }
 
-const AI_HERO_ANIM_PREFIX = 'ai_hero';
 const AI_ORIGIN_Y = 0.91;
 const FALLBACK_ORIGIN_Y = 0.86;
 const AI_FRAME_SIZE = AI_HERO_SPRITESHEET.frameWidth; // 256
@@ -68,7 +69,8 @@ const AI_HERO_FRAME_RATES: Record<AnimationName, number> = {
 };
 
 /**
- * Preloads the real AI hero spritesheet and all deduplicated AI weapon PNGs.
+ * Preloads the real AI hero spritesheet, all exclusive playable skin spritesheets,
+ * and all deduplicated AI weapon PNGs.
  */
 export function preloadHeroAiAssets(scene: Phaser.Scene): void {
   if (!scene.textures.exists(AI_HERO_SPRITESHEET.key)) {
@@ -76,6 +78,15 @@ export function preloadHeroAiAssets(scene: Phaser.Scene): void {
       frameWidth: AI_HERO_SPRITESHEET.frameWidth,
       frameHeight: AI_HERO_SPRITESHEET.frameHeight,
     });
+  }
+
+  for (const skin of SKINS_CATALOG) {
+    if (!scene.textures.exists(skin.spritesheetKey)) {
+      scene.load.spritesheet(skin.spritesheetKey, skin.spritesheetUrl, {
+        frameWidth: 256,
+        frameHeight: 256,
+      });
+    }
   }
 
   const seenWeaponKeys = new Set<string>();
@@ -117,10 +128,13 @@ function hasUsableTexture(scene: Phaser.Scene, key: string | undefined): key is 
   return Boolean(tex && tex.key !== '__MISSING');
 }
 
-function registerAiHeroAnimations(scene: Phaser.Scene): boolean {
-  if (!hasUsableTexture(scene, AI_HERO_SPRITESHEET.key)) return false;
+function registerAiHeroAnimations(
+  scene: Phaser.Scene,
+  sheetKey: string = AI_HERO_SPRITESHEET.key
+): boolean {
+  if (!hasUsableTexture(scene, sheetKey)) return false;
 
-  const tex = scene.textures.get(AI_HERO_SPRITESHEET.key);
+  const tex = scene.textures.get(sheetKey);
   const cols = AI_HERO_SPRITESHEET.cols;
   const expectedFrames = cols * AI_HERO_SPRITESHEET.rows;
   if (tex.frameTotal < expectedFrames) {
@@ -129,7 +143,7 @@ function registerAiHeroAnimations(scene: Phaser.Scene): boolean {
 
   for (let row = 0; row < ALL_ANIMATIONS.length; row++) {
     const animName = ALL_ANIMATIONS[row];
-    const animKey = `${AI_HERO_ANIM_PREFIX}:${animName}`;
+    const animKey = `${sheetKey}:${animName}`;
     if (scene.anims.exists(animKey)) continue;
 
     const start = row * cols;
@@ -138,7 +152,7 @@ function registerAiHeroAnimations(scene: Phaser.Scene): boolean {
 
     scene.anims.create({
       key: animKey,
-      frames: scene.anims.generateFrameNumbers(AI_HERO_SPRITESHEET.key, { start, end }),
+      frames: scene.anims.generateFrameNumbers(sheetKey, { start, end }),
       frameRate: AI_HERO_FRAME_RATES[animName],
       repeat: spec.repeat,
     });
@@ -178,6 +192,7 @@ export class FighterSprite {
   private readonly mode: RenderMode;
   private readonly rivalSpriteKey?: string;
 
+  private heroSheetKey: string = AI_HERO_SPRITESHEET.key;
   private textureKey: string;
   private visualFingerprint: string;
   private currentAnim: AnimationName = 'idle';
@@ -247,11 +262,30 @@ export class FighterSprite {
       this.textureKey = this.rivalSpriteKey;
       this.sprite = scene.add.sprite(x, y, this.textureKey);
       this.sprite.setOrigin(0.5, AI_ORIGIN_Y);
-    } else if (!this.rivalSpriteKey && registerAiHeroAnimations(scene)) {
-      this.mode = 'ai_hero';
-      this.textureKey = AI_HERO_SPRITESHEET.key;
-      this.sprite = scene.add.sprite(x, y, this.textureKey, 0);
-      this.sprite.setOrigin(0.5, AI_ORIGIN_Y);
+    } else if (!this.rivalSpriteKey) {
+      const targetSheet =
+        options?.heroSkinKey && hasUsableTexture(scene, options.heroSkinKey)
+          ? options.heroSkinKey
+          : AI_HERO_SPRITESHEET.key;
+      const resolvedSheet = registerAiHeroAnimations(scene, targetSheet)
+        ? targetSheet
+        : targetSheet !== AI_HERO_SPRITESHEET.key &&
+            registerAiHeroAnimations(scene, AI_HERO_SPRITESHEET.key)
+          ? AI_HERO_SPRITESHEET.key
+          : null;
+
+      if (resolvedSheet) {
+        this.mode = 'ai_hero';
+        this.heroSheetKey = resolvedSheet;
+        this.textureKey = resolvedSheet;
+        this.sprite = scene.add.sprite(x, y, resolvedSheet, 0);
+        this.sprite.setOrigin(0.5, AI_ORIGIN_Y);
+      } else {
+        this.mode = 'procedural_fallback';
+        this.textureKey = registerFighterSpritesheetInPhaser(scene, appearance, equipped);
+        this.sprite = scene.add.sprite(x, y, this.textureKey, 0);
+        this.sprite.setOrigin(0.5, FALLBACK_ORIGIN_Y);
+      }
     } else {
       this.mode = 'procedural_fallback';
       this.textureKey = registerFighterSpritesheetInPhaser(scene, appearance, equipped);
@@ -340,7 +374,7 @@ export class FighterSprite {
       return;
     }
 
-    const animPrefix = this.mode === 'ai_hero' ? AI_HERO_ANIM_PREFIX : this.textureKey;
+    const animPrefix = this.mode === 'ai_hero' ? this.heroSheetKey : this.textureKey;
     const animKey = `${animPrefix}:${anim}`;
     if (!this.scene.anims.exists(animKey)) return;
 

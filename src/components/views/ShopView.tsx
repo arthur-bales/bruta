@@ -1,15 +1,21 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { RefreshCw, Sparkles, Check, X, Heart } from 'lucide-react';
-import type { EquipmentItem, ShopStockItem } from '@shared/types';
+import type { EquipmentItem, FighterGender, ShopStockItem } from '@shared/types';
 import { RARITY_META, SLOT_LABELS } from '@shared/constants';
 import { CHEST_OFFERS, type ChestOffer } from '@shared/progression';
-import { DEFAULT_SKIN_ID, SKINS_CATALOG } from '@shared/skinsCatalog';
+import { SKINS_CATALOG, getDefaultSkinForGender } from '@shared/skinsCatalog';
 import { CoinPill, MbRow, PriceButton, SectionCard, formatCompact } from '@/components/ui/BruteUI';
 import { GameIcon } from '@/components/ui/GameIcon';
 import { apiClient } from '@/state/apiClient';
 import { useGame } from '@/state/GameContext';
 import { soundEngine } from '@/engine/audio/soundEffects';
 import { resolveChestIconUrl, resolveItemIconUrl } from '@/engine/art/aiAssets';
+
+const SKIN_FILTER_OPTIONS: { id: 'all' | FighterGender; label: string }[] = [
+  { id: 'all', label: 'Tous' },
+  { id: 'male', label: 'Homme' },
+  { id: 'female', label: 'Femme' },
+];
 
 export const ShopView: React.FC = () => {
   const {
@@ -29,6 +35,7 @@ export const ShopView: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [revealedItem, setRevealedItem] = useState<EquipmentItem | null>(null);
+  const [skinFilter, setSkinFilter] = useState<'all' | FighterGender>(() => fighter?.gender ?? 'male');
 
   const loadShop = useCallback(async () => {
     setLoading(true);
@@ -50,8 +57,13 @@ export const ShopView: React.FC = () => {
 
   if (!fighter) return null;
 
-  const unlockedSkins = fighter.unlockedSkins ?? [DEFAULT_SKIN_ID];
-  const equippedSkinId = fighter.equippedSkinId ?? DEFAULT_SKIN_ID;
+  const defaultSkinId = getDefaultSkinForGender(fighter.gender);
+  const unlockedSkins = fighter.unlockedSkins ?? [defaultSkinId];
+  const equippedSkinId = fighter.equippedSkinId ?? defaultSkinId;
+  const visibleSkins =
+    skinFilter === 'all'
+      ? SKINS_CATALOG
+      : SKINS_CATALOG.filter((skin) => skin.gender === skinFilter);
 
   const handleBuySkin = async (skinId: string) => {
     setBusyId(skinId);
@@ -278,12 +290,29 @@ export const ShopView: React.FC = () => {
           </>
         }
       >
+        <div className="arsenal-pills" style={{ marginBottom: 12 }}>
+          {SKIN_FILTER_OPTIONS.map((opt) => (
+            <button
+              key={opt.id}
+              type="button"
+              className={`arsenal-pill arsenal-pill--sub ${skinFilter === opt.id ? 'arsenal-pill--active' : ''}`}
+              onClick={() => {
+                soundEngine.play('click');
+                setSkinFilter(opt.id);
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
         <div className="shop-skins-grid">
-          {SKINS_CATALOG.map((skin) => {
+          {visibleSkins.map((skin) => {
             const isUnlocked = unlockedSkins.includes(skin.id);
             const isEquipped = equippedSkinId === skin.id;
             const rarityMeta = RARITY_META[skin.rarity];
             const canAfford = effectiveGold >= skin.priceGold;
+            const genderLabel = skin.gender === 'female' ? 'Femme' : 'Homme';
 
             return (
               <div
@@ -298,18 +327,38 @@ export const ShopView: React.FC = () => {
                 <div>
                   <div className="shop-skin-card__name">{skin.name}</div>
                   <div className="shop-skin-card__title">{skin.title}</div>
-                  <span
-                    className="badge"
+                  <div
                     style={{
-                      background: '#fffdf3',
-                      color: rarityMeta.color,
-                      borderColor: rarityMeta.border,
-                      fontSize: '0.7rem',
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      gap: 5,
                       marginTop: 5,
                     }}
                   >
-                    {rarityMeta.label}
-                  </span>
+                    <span
+                      className="badge"
+                      style={{
+                        background: '#fffdf3',
+                        color: rarityMeta.color,
+                        borderColor: rarityMeta.border,
+                        fontSize: '0.7rem',
+                      }}
+                    >
+                      {rarityMeta.label}
+                    </span>
+                    <span
+                      className="badge"
+                      style={{
+                        background: skin.gender === 'female' ? '#fff0f6' : '#eef6ff',
+                        color: skin.gender === 'female' ? '#a62c65' : '#235c9c',
+                        borderColor: skin.gender === 'female' ? '#d98cb1' : '#8cb3dc',
+                        fontSize: '0.7rem',
+                      }}
+                    >
+                      {genderLabel}
+                    </span>
+                  </div>
                 </div>
 
                 <p className="shop-skin-card__desc">{skin.description}</p>

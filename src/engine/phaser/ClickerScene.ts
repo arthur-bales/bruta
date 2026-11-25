@@ -313,7 +313,7 @@ export class ClickerScene extends Phaser.Scene {
 
     const layout = this.computeLayout(this.scale.width, this.scale.height);
     const nextSkinId = data.equippedSkinId;
-    const playerSkinKey = getSkinById(nextSkinId).rivalSpriteKey;
+    const playerSheetKey = getSkinById(nextSkinId).spritesheetKey;
 
     if (this.fighter && this.currentSkinId !== nextSkinId) {
       if (this.fighterLungeTween) {
@@ -333,7 +333,7 @@ export class ClickerScene extends Phaser.Scene {
         data.appearance,
         data.equipped,
         layout.scale,
-        { rivalSpriteKey: playerSkinKey }
+        { heroSkinKey: playerSheetKey }
       );
       this.fighter.setFacing('right');
       this.fighter.setDepth(12);

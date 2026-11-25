@@ -178,6 +178,7 @@ export const apiClient = {
   customizeFighter(body: {
     name: string;
     title?: string;
+    gender?: 'male' | 'female';
     appearance: FighterAppearance;
   }): Promise<{ fighter: FighterProfile }> {
     return apiRequest<{ fighter: FighterProfile }>('/api/player/customize', {

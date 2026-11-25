@@ -57,6 +57,7 @@ export function createInitialFighter(id: string, name = 'Brute'): FighterProfile
     id,
     name: name.trim() || 'Brute',
     title: 'Novice du Dojo',
+    gender: 'male',
     level: 1,
     xp: 0,
     xpToNext: xpRequiredForLevel(1),
@@ -75,8 +76,8 @@ export function createInitialFighter(id: string, name = 'Brute'): FighterProfile
       lck: 5,
     },
     appearance: { ...DEFAULT_APPEARANCE },
-    unlockedSkins: ['skin_hero_dojo'],
-    equippedSkinId: 'skin_hero_dojo',
+    unlockedSkins: ['skin_male_dojo'],
+    equippedSkinId: 'skin_male_dojo',
     equipped: {
       weapon: starterWeapon,
       helmet: null,

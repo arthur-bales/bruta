@@ -102,6 +102,7 @@ export interface GameContextValue {
   customizeFighter: (payload: {
     name: string;
     title?: string;
+    gender?: 'male' | 'female';
     appearance: FighterAppearance;
   }) => Promise<void>;
   allocateStat: (stat: keyof CoreStats, amount?: number) => Promise<void>;
@@ -405,7 +406,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [addToast, applySession]);
 
   const customizeFighter = useCallback(
-    async (payload: { name: string; title?: string; appearance: FighterAppearance }) => {
+    async (payload: {
+      name: string;
+      title?: string;
+      gender?: 'male' | 'female';
+      appearance: FighterAppearance;
+    }) => {
       const res = await apiClient.customizeFighter(payload);
       setFighter(res.fighter);
       soundEngine.play('equip');

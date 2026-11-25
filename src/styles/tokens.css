@@ -74,7 +74,7 @@
   --radius-pill: 999px;
 
   /* Layout Dimensions */
-  --page-max: 920px;
+  --page-max: min(1320px, calc(100vw - 28px));
   --sidebar-width: 0px;
   --topbar-height: 64px;
   --mobile-nav-height: 74px;

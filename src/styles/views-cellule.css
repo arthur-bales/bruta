@@ -66,9 +66,9 @@
   flex-wrap: wrap;
 }
 
-/* Main responsive 2-col layout:
-   Mobile (<900px): columns dissolve via display:contents so cards order 1..5
-   PC (>=900px): Left (Arsenal + Training) | Right (Hero + Stats + Arena CTA) */
+/* Main responsive 3-col layout:
+   Mobile (<1024px): columns dissolve via display:contents so cards order 0..5
+   PC (>=1024px): Left (Arsenal + Skills) | Center (Hero + Stats) | Right (Banners + Training + Arena CTA) */
 .cell-grid {
   display: flex;
   flex-direction: column;
@@ -76,37 +76,85 @@
 }
 
 .cell-col-left,
+.cell-col-center,
 .cell-col-right {
   display: contents;
 }
 
+.cell-card-banner { order: 0; }
 .cell-card-hero { order: 1; }
 .cell-card-stats { order: 2; }
 .cell-card-arsenal { order: 3; }
 .cell-card-training { order: 4; }
 .cell-card-arena { order: 5; }
 
-@media (min-width: 900px) {
+@media (min-width: 1024px) {
   .cell-grid {
     display: grid;
-    grid-template-columns: 1.05fr 1fr;
-    gap: 18px;
+    grid-template-columns: 1fr 1.12fr 1fr;
+    gap: 12px;
     align-items: start;
   }
 
   .cell-col-left,
+  .cell-col-center,
   .cell-col-right {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
+    min-width: 0;
   }
 
+  .cell-card-banner,
   .cell-card-hero,
   .cell-card-stats,
   .cell-card-arsenal,
   .cell-card-training,
   .cell-card-arena {
     order: 0;
+  }
+
+  /* Compact PC 16:9 card spacing so all of Ma Cellule fits without vertical scroll */
+  .cell-grid .mb-section {
+    padding: 12px 14px;
+  }
+
+  .cell-grid .mb-section__head {
+    margin-bottom: 8px;
+  }
+
+  .cell-grid .wood-board {
+    min-height: 120px;
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .cell-grid .wood-board__item {
+    width: 58px;
+    height: 58px;
+  }
+
+  .cell-grid .skill-grid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+  }
+
+  .cell-col-right .cell-banner {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .cell-col-right .cell-banner__icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .cell-col-right .cell-banner__title {
+    font-size: 0.86rem;
+  }
+
+  .cell-col-right .cell-banner__sub {
+    font-size: 0.72rem;
   }
 }
 
@@ -172,9 +220,19 @@
   position: relative;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 1024px) {
+  .cell-hero-head {
+    margin-bottom: 6px;
+  }
+
+  .cell-train-pill {
+    min-height: 30px;
+    padding: 3px 10px;
+    font-size: 0.72rem;
+  }
+
   .cell-stage-canvas {
-    height: 270px;
+    height: 220px;
   }
 }
 
@@ -425,6 +483,72 @@
 .cell-arena-box .parchment-btn {
   width: 100%;
   max-width: 360px;
+}
+
+@media (min-width: 1024px) {
+  .cell-stage-controls {
+    margin-top: 8px;
+    gap: 6px;
+  }
+
+  .cell-mini-pill {
+    min-height: 28px;
+    padding: 3px 8px;
+    font-size: 0.74rem;
+  }
+
+  .cell-stats-head {
+    margin-bottom: 8px;
+  }
+
+  .cell-stat-list {
+    gap: 5px;
+  }
+
+  .cell-card-stats .seg-bar__cell {
+    height: 15px;
+  }
+
+  .cell-card-stats .seg-stat__label,
+  .cell-card-stats .seg-stat__value {
+    font-size: 0.9rem;
+  }
+
+  .cell-card-stats .heart-hp__heart {
+    width: 44px;
+    height: 39px;
+    font-size: 0.95rem;
+  }
+
+  .cell-card-stats .heart-hp__label {
+    font-size: 1rem;
+  }
+
+  .cell-power-strip {
+    margin-top: 8px;
+    padding-top: 8px;
+    font-size: 0.76rem;
+  }
+
+  .cell-card-training .mb-row {
+    padding: 7px 10px;
+  }
+
+  .cell-arena-box {
+    padding: 10px 8px 4px;
+    gap: 8px;
+  }
+
+  .cell-arena-box .mb-flavor {
+    font-size: 0.82rem;
+    line-height: 1.3;
+  }
+
+  .cell-arena-box .parchment-btn {
+    min-height: 54px;
+    padding: 10px 20px;
+    font-size: 1.45rem;
+  }
 }
 
 /* ---------------------------------------------------------------------------

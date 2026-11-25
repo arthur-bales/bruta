@@ -32,7 +32,7 @@ describe('Progression & Economy Math (shared/progression.ts)', () => {
     expect(fighter.statPoints).toBeGreaterThan(0);
     expect(fighter.gold).toBeGreaterThan(0);
     expect(fighter.gems).toBe(0);
-    expect(fighter.equippedSkinId).toBe('skin_hero_dojo');
+    expect(fighter.equippedSkinId).toBe('skin_male_dojo');
     expect(fighter.rating).toBe(1000);
 
     expect(fighter.equipped.weapon).not.toBeNull();

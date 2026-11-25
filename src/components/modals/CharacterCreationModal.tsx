@@ -1,61 +1,32 @@
-import React, { useState } from 'react';
-import { Dices, Sparkles, Play, Swords } from 'lucide-react';
-import type { AnimationName } from '@shared/types';
+import React, { useEffect, useState } from 'react';
+import { Sparkles, Swords } from 'lucide-react';
+import type { FighterGender } from '@shared/types';
 import { PhaserCanvas } from '@/components/phaser/PhaserCanvas';
 import { useGame } from '@/state/GameContext';
 import { soundEngine } from '@/engine/audio/soundEffects';
-
-const RANDOM_NAMES = [
-  'Kaito',
-  'Mochi',
-  'Bagarrox',
-  'Sakura',
-  'Tornado',
-  'Bambou',
-  'Riku',
-  'ChibiRex',
-  'Flammèche',
-  'Yuki',
-  'Poulpy',
-  'Kenshin',
-];
-
-const RANDOM_WAR_CRIES = [
-  'En garde !',
-  'Pour la gloire du Dojo !',
-  'Personne n’arrête ma poêle !',
-  'Combo x100 en approche !',
-  'Chibi mais costaud !',
-  'Tu vas mordre la poussière !',
-];
 
 export const CharacterCreationModal: React.FC = () => {
   const { fighter, showCreationModal, setShowCreationModal, customizeFighter, addToast } = useGame();
 
   const [name, setName] = useState<string>(fighter?.name || 'Brute');
-  const [warCry, setWarCry] = useState<string>(fighter?.appearance.warCry || 'En garde !');
-  const [previewAnim, setPreviewAnim] = useState<{ anim: AnimationName; nonce: number } | null>(null);
+  const [gender, setGender] = useState<FighterGender>(fighter?.gender ?? 'male');
   const [submitting, setSubmitting] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (showCreationModal && fighter) {
       setName(fighter.name || 'Brute');
-      setWarCry(fighter.appearance.warCry || 'En garde !');
+      setGender(fighter.gender ?? 'male');
     }
-  }, [showCreationModal, fighter?.id, fighter?.name, fighter?.appearance.warCry]);
+  }, [showCreationModal, fighter?.id, fighter?.name, fighter?.gender]);
 
   if (!showCreationModal || !fighter) return null;
 
-  const triggerPreview = (anim: AnimationName) => {
-    setPreviewAnim((prev) => ({ anim, nonce: (prev?.nonce ?? 0) + 1 }));
-  };
+  const previewSkinId = gender === 'female' ? 'skin_female_dojo' : 'skin_male_dojo';
 
-  const handleRandomize = () => {
+  const handleSelectGender = (nextGender: FighterGender) => {
+    if (nextGender === gender) return;
     soundEngine.play('click');
-    const rand = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
-    setName(rand(RANDOM_NAMES) + Math.floor(10 + Math.random() * 89));
-    setWarCry(rand(RANDOM_WAR_CRIES));
-    triggerPreview('victory');
+    setGender(nextGender);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,10 +40,8 @@ export const CharacterCreationModal: React.FC = () => {
     try {
       await customizeFighter({
         name: cleanName.slice(0, 20),
-        appearance: {
-          ...fighter.appearance,
-          warCry: warCry.trim() || 'En garde !',
-        },
+        gender,
+        appearance: fighter.appearance,
       });
       setShowCreationModal(false);
     } catch (err) {
@@ -84,78 +53,37 @@ export const CharacterCreationModal: React.FC = () => {
 
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Créer ton combattant">
-      <div className="modal-box" style={{ maxWidth: 680 }}>
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 10,
-            marginBottom: 14,
-          }}
-        >
-          <div>
-            <h2 style={{ fontSize: '1.45rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Sparkles size={22} color="var(--accent-flame)" />
-              Crée ta Légende !
-            </h2>
-            <p className="view-subtitle">
-              Baptise ton combattant avant d’entrer dans le Colisée. Débloque de nouveaux skins en Boutique !
-            </p>
-          </div>
-          <button
-            type="button"
-            className="btn btn--gold btn--sm"
-            onClick={handleRandomize}
-          >
-            <Dices size={16} />
-            Aléatoire
-          </button>
+      <div className="modal-box" style={{ maxWidth: 660 }}>
+        <div style={{ marginBottom: 14 }}>
+          <h2 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Sparkles size={22} color="var(--accent-flame)" />
+            Crée ta Légende !
+          </h2>
+          <p className="view-subtitle">
+            Choisis ton nom et ton combattant avant d’entrer dans l’Arène.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="grid-2" style={{ alignItems: 'center' }}>
           {/* Left: Live Phaser Showcase */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div className="stage-frame stage-frame--hero">
-              <PhaserCanvas
-                mode="showcase"
-                arena="coliseum"
-                fighter={{ appearance: fighter.appearance, equipped: fighter.equipped }}
-                previewAnim={previewAnim}
-              />
-            </div>
-
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' }}>
-              {(
-                [
-                  { anim: 'idle', label: 'Repos' },
-                  { anim: 'attack', label: 'Attaque' },
-                  { anim: 'special', label: 'Spécial !' },
-                  { anim: 'victory', label: 'Victoire' },
-                ] as { anim: AnimationName; label: string }[]
-              ).map((btn) => (
-                <button
-                  key={btn.anim}
-                  type="button"
-                  className="btn btn--sm"
-                  onClick={() => {
-                    soundEngine.play('click');
-                    triggerPreview(btn.anim);
-                  }}
-                >
-                  {btn.label}
-                </button>
-              ))}
-            </div>
+          <div className="stage-frame stage-frame--hero">
+            <PhaserCanvas
+              mode="showcase"
+              arena="coliseum"
+              fighter={{
+                appearance: fighter.appearance,
+                equipped: fighter.equipped,
+                equippedSkinId: previewSkinId,
+              }}
+            />
           </div>
 
-          {/* Right: Fast Identity Form */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Right: Name + Gender + Single Giant CTA */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
               <label
                 htmlFor="creator-name"
-                style={{ display: 'block', fontWeight: 800, fontSize: '0.84rem', marginBottom: 4 }}
+                style={{ display: 'block', fontWeight: 800, fontSize: '0.88rem', marginBottom: 5 }}
               >
                 Nom du combattant
               </label>
@@ -167,50 +95,65 @@ export const CharacterCreationModal: React.FC = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ex: KaitoFlamme"
+                autoFocus
               />
             </div>
 
             <div>
-              <label
-                htmlFor="creator-warcry"
-                style={{ display: 'block', fontWeight: 800, fontSize: '0.84rem', marginBottom: 4 }}
+              <span
+                style={{ display: 'block', fontWeight: 800, fontSize: '0.88rem', marginBottom: 6 }}
               >
-                Cri de guerre
-              </label>
-              <input
-                id="creator-warcry"
-                type="text"
-                className="comic-input"
-                maxLength={48}
-                value={warCry}
-                onChange={(e) => setWarCry(e.target.value)}
-                placeholder="En garde !"
-              />
+                Sexe
+              </span>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <button
+                  type="button"
+                  className={`btn btn--lg ${gender === 'male' ? 'btn--gold' : ''}`}
+                  aria-pressed={gender === 'male'}
+                  onClick={() => handleSelectGender('male')}
+                  style={{
+                    width: '100%',
+                    minHeight: 50,
+                    fontSize: '1.05rem',
+                    borderWidth: 3,
+                    boxShadow:
+                      gender === 'male'
+                        ? '0 4px 0 #6b3f22, 0 0 0 3px rgba(240, 138, 28, 0.35)'
+                        : undefined,
+                  }}
+                >
+                  Homme
+                </button>
+                <button
+                  type="button"
+                  className={`btn btn--lg ${gender === 'female' ? 'btn--gold' : ''}`}
+                  aria-pressed={gender === 'female'}
+                  onClick={() => handleSelectGender('female')}
+                  style={{
+                    width: '100%',
+                    minHeight: 50,
+                    fontSize: '1.05rem',
+                    borderWidth: 3,
+                    boxShadow:
+                      gender === 'female'
+                        ? '0 4px 0 #6b3f22, 0 0 0 3px rgba(240, 138, 28, 0.35)'
+                        : undefined,
+                  }}
+                >
+                  Femme
+                </button>
+              </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
-              <button
-                type="submit"
-                className="btn btn--primary btn--lg"
-                disabled={submitting}
-                style={{ width: '100%' }}
-              >
-                <Swords size={20} />
-                {submitting ? 'Préparation…' : "ENTRER DANS L'ARÈNE !"}
-              </button>
-              <button
-                type="button"
-                className="btn btn--sm"
-                style={{ width: '100%' }}
-                onClick={() => {
-                  soundEngine.play('click');
-                  setShowCreationModal(false);
-                }}
-              >
-                <Play size={15} />
-                JOUER DIRECT
-              </button>
-            </div>
+            <button
+              type="submit"
+              className="btn btn--primary btn--lg"
+              disabled={submitting}
+              style={{ width: '100%', minHeight: 56, fontSize: '1.15rem', marginTop: 4 }}
+            >
+              <Swords size={22} />
+              {submitting ? 'Préparation…' : "ENTRER DANS L'ARÈNE !"}
+            </button>
           </div>
         </form>
       </div>

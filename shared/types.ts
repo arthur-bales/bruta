@@ -286,21 +286,26 @@ export interface PlayerSettings {
   reducedMotion: boolean;
 }
 
+export type FighterGender = 'male' | 'female';
+
 export interface SkinDefinition {
   id: string;
   name: string;
   title: string;
   description: string;
+  gender: FighterGender;
   rarity: Rarity;
   priceGold: number;
   previewUrl: string;
-  rivalSpriteKey?: string;
+  spritesheetKey: string;
+  spritesheetUrl: string;
 }
 
 export interface FighterProfile {
   id: string;
   name: string;
   title: string;
+  gender?: FighterGender;
   level: number;
   xp: number;
   xpToNext: number;

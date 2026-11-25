@@ -138,7 +138,7 @@ export class ArenaScene extends Phaser.Scene {
   private spawnIdlePreviewFighter(data: FighterVisualData): void {
     this.clearFighters();
     this.currentSkinId = data.equippedSkinId;
-    const playerSkinKey = getSkinById(data.equippedSkinId).rivalSpriteKey;
+    const playerSheetKey = getSkinById(data.equippedSkinId).spritesheetKey;
     const layout = this.computeArenaLayout(this.scale.width, this.scale.height);
     this.leftFighter = new FighterSprite(
       this,
@@ -147,7 +147,7 @@ export class ArenaScene extends Phaser.Scene {
       data.appearance,
       data.equipped,
       layout.scale,
-      { rivalSpriteKey: playerSkinKey }
+      { heroSkinKey: playerSheetKey }
     );
     this.leftFighter.setFacing('right');
     this.leftFighter.setDepth(10);
@@ -170,7 +170,7 @@ export class ArenaScene extends Phaser.Scene {
 
     const equippedSkinId = this.bridge.getState().fighter?.equippedSkinId;
     this.currentSkinId = equippedSkinId;
-    const playerSkinKey = getSkinById(equippedSkinId).rivalSpriteKey;
+    const playerSheetKey = getSkinById(equippedSkinId).spritesheetKey;
 
     this.leftFighter = new FighterSprite(
       this,
@@ -179,7 +179,7 @@ export class ArenaScene extends Phaser.Scene {
       battle.left.appearance,
       battle.left.equipped,
       layout.scale,
-      { rivalSpriteKey: playerSkinKey }
+      { heroSkinKey: playerSheetKey }
     );
     this.leftFighter.setFacing('right');
     this.leftFighter.setDepth(10);
