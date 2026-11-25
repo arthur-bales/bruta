@@ -47,7 +47,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 170px;
+    height: 146px;
     background:
       radial-gradient(ellipse at 50% 120%, rgba(255, 236, 190, 0.9), transparent 60%),
       linear-gradient(180deg, #f3dca8 0%, #e9c88a 100%);
@@ -72,15 +72,19 @@
   border: none;
   background: none;
   padding: 0;
-  transition: transform 0.15s ease;
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .mb-banner__logo-btn:hover {
-  transform: scale(1.03) rotate(-1deg);
+  transform: scale(1.04) rotate(-1deg);
+}
+
+.mb-banner__logo-btn:active {
+  transform: scale(0.97);
 }
 
 .mb-banner__logo {
-  height: 118px;
+  height: 102px;
   width: auto;
   filter: drop-shadow(0 4px 0 rgba(107, 63, 34, 0.35));
 }
@@ -90,7 +94,7 @@
   z-index: 2;
   margin-top: -4px;
   font-family: var(--font-display);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   letter-spacing: 0.08em;
   color: #8b4a2b;
   text-transform: uppercase;
@@ -99,7 +103,7 @@
 .mb-banner__mascot {
   position: absolute;
   bottom: -14px;
-  height: 178px;
+  height: 154px;
   width: auto;
   z-index: 1;
   filter: drop-shadow(0 4px 0 rgba(74, 42, 22, 0.25));
@@ -147,11 +151,17 @@
   background: linear-gradient(180deg, #fffaea 0%, #ecd8a6 100%);
   box-shadow: var(--shadow-comic-sm), inset 0 2px 0 rgba(255, 255, 255, 0.7);
   color: var(--ink-strong);
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.14s ease;
 }
 
 .mb-tab:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 6px 0 #6b3f22, inset 0 2px 0 rgba(255, 255, 255, 0.8);
+}
+
+.mb-tab:active {
+  transform: translateY(2px) scale(0.97);
+  box-shadow: 0 1px 0 #6b3f22;
 }
 
 .mb-tab--active {
@@ -222,6 +232,7 @@
   color: var(--ink-body);
   font-family: var(--font-title);
   font-size: 0.95rem;
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.14s ease, background 0.14s ease, border-color 0.14s ease;
 }
 
 .mb-mini-tab:hover,
@@ -229,6 +240,16 @@
   border-color: #6b3f22;
   background: #fffaea;
   color: var(--ink-strong);
+}
+
+.mb-mini-tab:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 3px 0 #8b5a35;
+}
+
+.mb-mini-tab:active {
+  transform: translateY(1px) scale(0.97);
+  box-shadow: 0 1px 0 #8b5a35;
 }
 
 /* ---------------- Status plaque ---------------- */
@@ -271,6 +292,17 @@
   background: linear-gradient(180deg, #fbeccb 0%, #edd6a2 100%);
   box-shadow: var(--shadow-comic-sm), inset 0 2px 0 rgba(255, 255, 255, 0.6);
   color: var(--ink-strong);
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.14s ease;
+}
+
+.name-plaque:hover {
+  transform: translateY(-2px) scale(1.015);
+  box-shadow: 0 5px 0 #6b3f22, inset 0 2px 0 rgba(255, 255, 255, 0.75);
+}
+
+.name-plaque:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 1px 0 #6b3f22;
 }
 
 .name-plaque__name {
@@ -304,10 +336,16 @@
   box-shadow: var(--shadow-comic-sm);
   color: var(--ink-strong);
   padding: 0;
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.14s ease;
+}
+
+.hud-square-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 5px 0 #6b3f22;
 }
 
 .hud-square-btn:active {
-  transform: translateY(2px);
+  transform: translateY(2px) scale(0.95);
   box-shadow: 0 1px 0 #6b3f22;
 }
 
@@ -383,6 +421,18 @@
   font-family: var(--font-title);
   font-size: 0.95rem;
   white-space: nowrap;
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.14s ease, background 0.14s ease, border-color 0.14s ease;
+}
+
+.mb-subnav__btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  border-color: #6b3f22;
+  box-shadow: 0 3px 0 #6b3f22;
+}
+
+.mb-subnav__btn:active {
+  transform: translateY(1px) scale(0.97);
+  box-shadow: 0 1px 0 #6b3f22;
 }
 
 .mb-subnav__btn--active {
@@ -441,6 +491,12 @@
   box-shadow: 0 3px 0 #4a2a16, inset 0 2px 0 rgba(255, 255, 255, 0.6);
   color: var(--ink-strong);
   line-height: 1.05;
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.14s ease;
+}
+
+.mobile-nav__btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 5px 0 #4a2a16, inset 0 2px 0 rgba(255, 255, 255, 0.75);
 }
 
 .mobile-nav__btn strong {
@@ -467,7 +523,7 @@
 }
 
 .mobile-nav__btn:active {
-  transform: translateY(2px);
+  transform: translateY(2px) scale(0.96);
   box-shadow: 0 1px 0 #4a2a16;
 }
 
@@ -538,6 +594,17 @@
   font-family: var(--font-title);
   font-size: 1rem;
   text-align: left;
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.14s ease;
+}
+
+.mb-drawer-link:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 5px 0 #6b3f22;
+}
+
+.mb-drawer-link:active {
+  transform: translateY(2px) scale(0.97);
+  box-shadow: 0 1px 0 #6b3f22;
 }
 
 .mb-drawer-link span:first-of-type {

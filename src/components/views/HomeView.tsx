@@ -4,6 +4,7 @@ import {
   Gift,
   Palette,
   Sparkles,
+  Star,
   Swords,
   X,
 } from 'lucide-react';
@@ -20,14 +21,20 @@ import {
   SegmentedStat,
   formatCompact,
 } from '@/components/ui/BruteUI';
+import {
+  GameIcon,
+  resolveArenaIconName,
+  resolveSkillIconName,
+  resolveUpgradeIconName,
+} from '@/components/ui/GameIcon';
 import { resolveItemIconUrl } from '@/engine/art/aiAssets';
 import { soundEngine } from '@/engine/audio/soundEffects';
 import { useGame } from '@/state/GameContext';
 
-const ARENA_OPTIONS: { id: ArenaTheme; label: string; emoji: string }[] = [
-  { id: 'coliseum', label: 'Colisée', emoji: '🏛️' },
-  { id: 'dojo', label: 'Dojo', emoji: '⛩️' },
-  { id: 'volcano', label: 'Volcan', emoji: '🌋' },
+const ARENA_OPTIONS: { id: ArenaTheme; label: string }[] = [
+  { id: 'coliseum', label: 'Colisée' },
+  { id: 'dojo', label: 'Dojo' },
+  { id: 'volcano', label: 'Volcan' },
 ];
 
 const CORE_STAT_ROWS: { key: keyof CoreStats; label: string }[] = [
@@ -156,7 +163,7 @@ export const HomeView: React.FC = () => {
     }));
     const gain = Math.round(clickMetrics.goldPerClick * (isCrit ? 1.5 : 1));
     setTapFeedback((prev) => ({
-      text: `${isCrit ? '💥 ' : '+'}${gain} Or`,
+      text: `${isCrit ? 'CRIT! +' : '+'}${gain} Or`,
       nonce: (prev?.nonce ?? 0) + 1,
     }));
   };
@@ -368,7 +375,7 @@ export const HomeView: React.FC = () => {
                         setActiveView('skills');
                       }}
                     >
-                      <span aria-hidden="true">{skill.icon}</span>
+                      <GameIcon name={resolveSkillIconName(skill.id)} size={28} />
                       {unlocked && <span className="skill-tile__lvl">{lvl}</span>}
                     </button>
                   );
@@ -404,7 +411,7 @@ export const HomeView: React.FC = () => {
                 return (
                   <MbRow
                     key={upg.id}
-                    icon={<span>{upg.icon}</span>}
+                    icon={<GameIcon name={resolveUpgradeIconName(upg.id)} size={32} />}
                     title={upg.name}
                     level={`Niv.${currentLvl}`}
                     desc={upg.effectLabel}
@@ -441,7 +448,8 @@ export const HomeView: React.FC = () => {
                 onClick={handleQuickTrainTap}
                 title="Tape pour entraîner ta brute et gagner de l'or instantanément !"
               >
-                👊 TAPE POUR ENTRAÎNER (+{clickMetrics.goldPerClick} Or)
+                <GameIcon name="fist" size={16} />
+                TAPE POUR ENTRAÎNER (+{clickMetrics.goldPerClick} Or)
               </button>
             </div>
 
@@ -482,9 +490,19 @@ export const HomeView: React.FC = () => {
                 }}
                 title="Voir et changer ton équipement"
               >
-                <span className="cell-equip-strip__slot">⚔️ {weaponLabel}</span>
-                <span className="cell-equip-strip__slot cell-equip-strip__slot--right">
-                  🛡️ {armorLabel}
+                <span
+                  className="cell-equip-strip__slot"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                >
+                  <GameIcon name="sword" size={16} />
+                  {weaponLabel}
+                </span>
+                <span
+                  className="cell-equip-strip__slot cell-equip-strip__slot--right"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                >
+                  <GameIcon name="iron_armor" size={16} />
+                  {armorLabel}
                 </span>
               </div>
             </div>
@@ -502,7 +520,8 @@ export const HomeView: React.FC = () => {
                       setHomeArena(ar.id);
                     }}
                   >
-                    {ar.emoji} {ar.label}
+                    <GameIcon name={resolveArenaIconName(ar.id)} size={16} rounded />
+                    {ar.label}
                   </button>
                 ))}
               </div>
@@ -514,7 +533,8 @@ export const HomeView: React.FC = () => {
                   onClick={() => triggerPose('special')}
                   title="Animation spéciale"
                 >
-                  ✨ Pose
+                  <Sparkles size={13} />
+                  Pose
                 </button>
                 <button
                   type="button"
@@ -535,7 +555,8 @@ export const HomeView: React.FC = () => {
                     setActiveView('clicker');
                   }}
                 >
-                  🥋 Dojo
+                  <GameIcon name="training_dummy" size={15} />
+                  Dojo
                 </button>
               </div>
             </div>
@@ -589,7 +610,10 @@ export const HomeView: React.FC = () => {
 
             {fighter.statPoints > 0 && (
               <div className="cell-points-bar">
-                <span>⭐ {fighter.statPoints} point(s) à répartir !</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                  <Star size={15} fill="#f2c21b" color="#6b3f22" />
+                  {fighter.statPoints} point(s) à répartir !
+                </span>
                 <button
                   type="button"
                   className="btn btn--sm btn--gold"

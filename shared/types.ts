@@ -276,6 +276,7 @@ export interface PlayerProgressStats {
   highestCombo: number;
   winStreak: number;
   bestWinStreak: number;
+  defeatedOpponentIds?: string[];
 }
 
 export interface PlayerSettings {

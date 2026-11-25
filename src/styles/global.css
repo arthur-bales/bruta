@@ -120,6 +120,8 @@ img {
    Buttons
    --------------------------------------------------------------------------- */
 .btn {
+  position: relative;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -135,20 +137,46 @@ img {
   color: var(--ink-strong);
   background: linear-gradient(180deg, #fffaea 0%, #f1dfb1 100%);
   box-shadow: var(--shadow-comic-sm), inset 0 2px 0 rgba(255, 255, 255, 0.7);
-  transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.12s ease;
+  transition:
+    transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.14s ease,
+    filter 0.14s ease;
   text-decoration: none;
   text-transform: uppercase;
   line-height: 1.05;
 }
 
+.btn::after {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -60%;
+  width: 38%;
+  height: 140%;
+  background: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.36) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-22deg);
+  pointer-events: none;
+  opacity: 0;
+}
+
 .btn:hover:not(:disabled) {
-  filter: brightness(1.05);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 0 #6b3f22, inset 0 2px 0 rgba(255, 255, 255, 0.7);
+  filter: brightness(1.06);
+  transform: translateY(-2px) scale(1.018);
+  box-shadow: 0 5px 0 #6b3f22, inset 0 2px 0 rgba(255, 255, 255, 0.75);
+}
+
+.btn:hover:not(:disabled)::after {
+  opacity: 1;
+  animation: btnSheen 0.62s ease forwards;
 }
 
 .btn:active:not(:disabled) {
-  transform: translateY(2px);
+  transform: translateY(3px) scale(0.97);
   box-shadow: 0 1px 0 #6b3f22;
 }
 
@@ -203,11 +231,22 @@ img {
 /* Giant orange call to action ("GO ! LANCER LE COMBAT") */
 .btn--mega {
   width: 100%;
-  min-height: 66px;
-  font-size: clamp(1.3rem, 4.6vw, 1.9rem);
+  min-height: 62px;
+  font-size: clamp(1.2rem, 3.8vw, 1.65rem);
   border-radius: 14px;
   border-width: 4px;
   box-shadow: 0 6px 0 #6b3f22, inset 0 3px 0 rgba(255, 255, 255, 0.45);
+  animation: ctaPulse 2.4s ease-in-out infinite;
+}
+
+.btn--mega:hover:not(:disabled) {
+  animation: none;
+  transform: translateY(-3px) scale(1.018);
+  box-shadow: 0 8px 0 #6b3f22, 0 12px 20px rgba(107, 63, 34, 0.28), inset 0 3px 0 rgba(255, 255, 255, 0.55);
+}
+
+.btn--mega:disabled {
+  animation: none;
 }
 
 /* Torn-parchment button ("ARENA" in My Brute) */
@@ -727,6 +766,50 @@ img {
 @keyframes breathe {
   0%, 100% { transform: translateY(0) scaleY(1); }
   50% { transform: translateY(-2px) scaleY(1.015); }
+}
+
+@keyframes btnSheen {
+  0% { left: -60%; }
+  100% { left: 130%; }
+}
+
+@keyframes ctaPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.012); }
+}
+
+.game-icon {
+  display: inline-block;
+  object-fit: contain;
+  vertical-align: middle;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 0 rgba(74, 42, 22, 0.22));
+}
+
+.game-icon--thumb {
+  object-fit: cover;
+  border-radius: 5px;
+  border: 1.5px solid #6b3f22;
+}
+
+.price-btn {
+  transition:
+    transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.14s ease,
+    filter 0.14s ease;
+}
+
+.price-btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 5px 0 #6b3f22, inset 0 2px 0 rgba(255, 255, 255, 0.75);
+}
+
+.parchment-btn {
+  animation: ctaPulse 2.8s ease-in-out infinite;
+  transition:
+    transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.15s ease;
 }
 
 .animate-pop {

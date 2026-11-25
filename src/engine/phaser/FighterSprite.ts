@@ -1323,12 +1323,12 @@ export class FighterSprite {
       const showWeapon = this.mode === 'ai_hero' && Boolean(this.currentWeaponKey) && this.sprite.visible;
       this.weaponSprite.setVisible(showWeapon);
       if (showWeapon) {
-        // Anchor weapon handle at the hero's lead hand in 256px sprite space
-        const handX = 42 + this.weaponPose.offX;
-        const handY = -106 + this.weaponPose.offY;
-        const weaponBaseScale = 0.56 * this.weaponPose.scaleMult;
+        // Anchor weapon handle precisely inside the hero's raised lead fist (180px, 115px in 256px sprite space)
+        const handX = 52 + this.weaponPose.offX;
+        const handY = -117 + this.weaponPose.offY;
+        const weaponBaseScale = 0.52 * this.weaponPose.scaleMult;
 
-        this.weaponSprite.setOrigin(dir > 0 ? 0.24 : 0.76, 0.78);
+        this.weaponSprite.setOrigin(dir > 0 ? 0.25 : 0.75, 0.78);
         this.weaponSprite.setFlipX(dir < 0);
         this.weaponSprite.setPosition(
           this.sprite.x + dir * handX * sx,

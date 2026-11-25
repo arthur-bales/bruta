@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Check, Lock, X } from 'lucide-react';
+import { Check, Coins, Flame, Heart, Lock, TrendingUp, X, Zap } from 'lucide-react';
 import type { SkillDefinition } from '@shared/types';
 import { MAX_EQUIPPED_ACTIVE_SKILLS } from '@shared/constants';
 import {
@@ -8,47 +8,89 @@ import {
   getSkillUpgradeCost,
 } from '@shared/skillsCatalog';
 import { MbRow, PriceButton, SectionCard } from '@/components/ui/BruteUI';
+import { GameIcon, resolveSkillIconName } from '@/components/ui/GameIcon';
 import { useGame } from '@/state/GameContext';
 import { soundEngine } from '@/engine/audio/soundEffects';
 
 function renderSkillBonusTags(skill: SkillDefinition, level: number) {
   const effectiveLvl = Math.max(1, level);
-  const tags: string[] = [];
+  const tags: Array<{ key: string; icon?: React.ReactNode; label: string }> = [];
 
   if (skill.category === 'active') {
-    if (skill.rageCost) tags.push(`🔥 ${skill.rageCost} Rage`);
+    if (skill.rageCost) {
+      tags.push({
+        key: 'rage',
+        icon: <Flame size={12} color="#d0412a" />,
+        label: `${skill.rageCost} Rage`,
+      });
+    }
     if (skill.damageMultiplier) {
       const scaled = (skill.damageMultiplier * (1 + (effectiveLvl - 1) * 0.12)).toFixed(2);
       const hitsLabel = skill.hits && skill.hits > 1 ? `${skill.hits}x ` : '';
-      tags.push(`⚔️ ${hitsLabel}${scaled}x ATQ`);
+      tags.push({
+        key: 'atk',
+        icon: <GameIcon name="sword" size={13} />,
+        label: `${hitsLabel}${scaled}x ATQ`,
+      });
     }
     if (skill.healPercent) {
-      tags.push(`💚 Soin +${Math.round(skill.healPercent + (effectiveLvl - 1) * 2)}%`);
+      tags.push({
+        key: 'heal',
+        icon: <Heart size={12} fill="#1f9d55" color="#146c3a" />,
+        label: `Soin +${Math.round(skill.healPercent + (effectiveLvl - 1) * 2)}%`,
+      });
     }
-    if (skill.stunTurns) tags.push(`⚡ Étourdit ${skill.stunTurns} tour`);
+    if (skill.stunTurns) {
+      tags.push({
+        key: 'stun',
+        icon: <Zap size={12} color="#d97706" />,
+        label: `Étourdit ${skill.stunTurns} tour`,
+      });
+    }
     if (skill.buffStat && skill.buffAmount) {
-      tags.push(`📈 +${skill.buffAmount + (effectiveLvl - 1) * 2} ${skill.buffStat.toUpperCase()}`);
+      tags.push({
+        key: 'buff',
+        icon: <TrendingUp size={12} color="#2563eb" />,
+        label: `+${skill.buffAmount + (effectiveLvl - 1) * 2} ${skill.buffStat.toUpperCase()}`,
+      });
     }
   } else if (skill.passiveBonuses) {
     const p = skill.passiveBonuses;
-    if (p.str) tags.push(`FOR +${p.str * effectiveLvl}`);
-    if (p.def) tags.push(`DÉF +${p.def * effectiveLvl}`);
-    if (p.agi) tags.push(`AGI +${p.agi * effectiveLvl}`);
-    if (p.vit) tags.push(`VIT +${p.vit * effectiveLvl}`);
-    if (p.lck) tags.push(`CHA +${p.lck * effectiveLvl}`);
-    if (p.critChance) tags.push(`Crit +${(p.critChance * effectiveLvl * 100).toFixed(1)}%`);
-    if (p.dodgeChance) tags.push(`Esquive +${(p.dodgeChance * effectiveLvl * 100).toFixed(1)}%`);
-    if (p.blockChance) tags.push(`Blocage +${(p.blockChance * effectiveLvl * 100).toFixed(1)}%`);
-    if (p.lifesteal) tags.push(`Vol de vie +${(p.lifesteal * effectiveLvl * 100).toFixed(1)}%`);
-    if (p.goldPercent) tags.push(`🪙 +${p.goldPercent * effectiveLvl}% Or`);
-    if (p.clickDamagePercent) tags.push(`👊 +${p.clickDamagePercent * effectiveLvl}% Clic`);
+    if (p.str) tags.push({ key: 'str', label: `FOR +${p.str * effectiveLvl}` });
+    if (p.def) tags.push({ key: 'def', label: `DÉF +${p.def * effectiveLvl}` });
+    if (p.agi) tags.push({ key: 'agi', label: `AGI +${p.agi * effectiveLvl}` });
+    if (p.vit) tags.push({ key: 'vit', label: `VIT +${p.vit * effectiveLvl}` });
+    if (p.lck) tags.push({ key: 'lck', label: `CHA +${p.lck * effectiveLvl}` });
+    if (p.critChance) tags.push({ key: 'crit', label: `Crit +${(p.critChance * effectiveLvl * 100).toFixed(1)}%` });
+    if (p.dodgeChance) tags.push({ key: 'dodge', label: `Esquive +${(p.dodgeChance * effectiveLvl * 100).toFixed(1)}%` });
+    if (p.blockChance) tags.push({ key: 'block', label: `Blocage +${(p.blockChance * effectiveLvl * 100).toFixed(1)}%` });
+    if (p.lifesteal) tags.push({ key: 'life', label: `Vol de vie +${(p.lifesteal * effectiveLvl * 100).toFixed(1)}%` });
+    if (p.goldPercent) {
+      tags.push({
+        key: 'gold',
+        icon: <Coins size={12} color="#c9820a" />,
+        label: `+${p.goldPercent * effectiveLvl}% Or`,
+      });
+    }
+    if (p.clickDamagePercent) {
+      tags.push({
+        key: 'click',
+        icon: <GameIcon name="fist" size={13} />,
+        label: `+${p.clickDamagePercent * effectiveLvl}% Clic`,
+      });
+    }
   }
 
   return (
     <div className="arsenal-stat-tags" style={{ marginTop: 4 }}>
       {tags.map((t) => (
-        <span key={t} className="arsenal-stat-tag">
-          {t}
+        <span
+          key={t.key}
+          className="arsenal-stat-tag"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+        >
+          {t.icon}
+          {t.label}
         </span>
       ))}
     </div>
@@ -133,7 +175,7 @@ export const SkillsView: React.FC = () => {
                   acquired ? `Niv. ${currentLvl}/${skill.maxLevel}` : `Verrouillée (Niv. ${skill.unlockLevel})`
                 }`}
               >
-                <span aria-hidden="true">{skill.icon}</span>
+                <GameIcon name={resolveSkillIconName(skill.id)} size={28} />
                 {acquired && <span className="skill-tile__lvl">{currentLvl}</span>}
                 {isEquipped && (
                   <span
@@ -184,14 +226,18 @@ export const SkillsView: React.FC = () => {
               return (
                 <div key={skill.id} className="skills-loadout-slot">
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                    <span style={{ fontSize: '1.35rem' }}>{skill.icon}</span>
+                    <GameIcon name={resolveSkillIconName(skill.id)} size={32} />
                     <div style={{ minWidth: 0 }}>
                       <div className="mb-row__title" style={{ fontSize: '0.92rem' }}>
                         {skill.name}
                         <em>Niv.{lvl}</em>
                       </div>
-                      <div className="mb-row__desc" style={{ fontSize: '0.74rem' }}>
-                        🔥 {skill.rageCost} Rage
+                      <div
+                        className="mb-row__desc"
+                        style={{ fontSize: '0.74rem', display: 'inline-flex', alignItems: 'center', gap: 3 }}
+                      >
+                        <Flame size={12} color="#d0412a" />
+                        {skill.rageCost} Rage
                       </div>
                     </div>
                   </div>
@@ -271,7 +317,7 @@ export const SkillsView: React.FC = () => {
                           : '#f6ecc6',
                       }}
                     >
-                      {skill.icon}
+                      <GameIcon name={resolveSkillIconName(skill.id)} size={32} />
                     </span>
                   }
                   title={skill.name}

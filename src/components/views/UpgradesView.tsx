@@ -1,16 +1,18 @@
 import React, { useMemo, useState } from 'react';
+import { BookOpen, Coins, Settings, Star } from 'lucide-react';
 import type { UpgradeCategory } from '@shared/types';
 import { UPGRADES_CATALOG, getUpgradeCost } from '@shared/upgradesCatalog';
 import { MbRow, PriceButton, SectionCard } from '@/components/ui/BruteUI';
+import { GameIcon, resolveUpgradeIconName } from '@/components/ui/GameIcon';
 import { soundEngine } from '@/engine/audio/soundEffects';
 import { useGame } from '@/state/GameContext';
 
-const CATEGORY_LABELS: Record<'all' | UpgradeCategory, string> = {
-  all: 'Toutes (12)',
-  click: '👊 Clicker',
-  auto: '⚙️ Auto / Idle',
-  dojo: '⛩️ Dojo Global',
-};
+const CATEGORY_TABS: { id: 'all' | UpgradeCategory; label: string; icon?: React.ReactNode }[] = [
+  { id: 'all', label: 'Toutes (12)' },
+  { id: 'click', label: 'Clicker', icon: <GameIcon name="fist" size={16} /> },
+  { id: 'auto', label: 'Auto / Idle', icon: <GameIcon name="hourglass" size={16} /> },
+  { id: 'dojo', label: 'Dojo Global', icon: <GameIcon name="arena_dojo" size={16} rounded /> },
+];
 
 export const UpgradesView: React.FC = () => {
   const { fighter, clickMetrics, effectiveGold, buyUpgrade, addToast } = useGame();
@@ -40,17 +42,24 @@ export const UpgradesView: React.FC = () => {
       <div className="dojo-metrics">
         <div className="dojo-metric-tile">
           <span>Gain par Clic</span>
-          <strong>
-            🪙 +{clickMetrics.goldPerClick} • ⭐ +{clickMetrics.xpPerClick}
+          <strong style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+            <Coins size={15} color="#c9820a" />+{clickMetrics.goldPerClick} •{' '}
+            <Star size={14} fill="#f2c21b" color="#8b4a2b" />+{clickMetrics.xpPerClick}
           </strong>
         </div>
         <div className="dojo-metric-tile">
           <span>Revenu Passif</span>
-          <strong>⚙️ {clickMetrics.autoGoldPerSec} Or/s</strong>
+          <strong style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+            <Settings size={15} color="#6b3f22" />
+            {clickMetrics.autoGoldPerSec} Or/s
+          </strong>
         </div>
         <div className="dojo-metric-tile">
           <span>XP Passif</span>
-          <strong>📘 {clickMetrics.autoXpPerSec} XP/s</strong>
+          <strong style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+            <BookOpen size={15} color="#1d72c9" />
+            {clickMetrics.autoXpPerSec} XP/s
+          </strong>
         </div>
         <div className="dojo-metric-tile">
           <span>Bonus Or / XP</span>
@@ -62,17 +71,18 @@ export const UpgradesView: React.FC = () => {
 
       {/* Category Filter Pills */}
       <div className="upg-filter-bar">
-        {(['all', 'click', 'auto', 'dojo'] as const).map((cat) => (
+        {CATEGORY_TABS.map((tab) => (
           <button
-            key={cat}
+            key={tab.id}
             type="button"
-            className={`mb-subnav__btn ${category === cat ? 'mb-subnav__btn--active' : ''}`}
+            className={`mb-subnav__btn ${category === tab.id ? 'mb-subnav__btn--active' : ''}`}
             onClick={() => {
               soundEngine.play('click');
-              setCategory(cat);
+              setCategory(tab.id);
             }}
           >
-            {CATEGORY_LABELS[cat]}
+            {tab.icon}
+            {tab.label}
           </button>
         ))}
       </div>
@@ -97,7 +107,7 @@ export const UpgradesView: React.FC = () => {
             return (
               <MbRow
                 key={upg.id}
-                icon={<span>{upg.icon}</span>}
+                icon={<GameIcon name={resolveUpgradeIconName(upg.id)} size={32} />}
                 title={upg.name}
                 level={`Niv.${currentLvl}/${upg.maxLevel}`}
                 desc={

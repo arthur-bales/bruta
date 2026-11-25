@@ -1,15 +1,56 @@
 import React, { useMemo, useState } from 'react';
-import { Gift, CheckCircle2, Calendar, Target, Award, Sparkles } from 'lucide-react';
+import {
+  Gift,
+  CheckCircle2,
+  Calendar,
+  Target,
+  Award,
+  Sparkles,
+  Coins,
+  Gem,
+  Star,
+} from 'lucide-react';
 import type { EquipmentItem } from '@shared/types';
-import { RARITY_META, SLOT_LABELS } from '@shared/constants';
+import { RARITY_META } from '@shared/constants';
 import {
   DAILY_REWARDS_CATALOG,
   MISSIONS_CATALOG,
   getMissionProgress,
 } from '@shared/missionsCatalog';
 import { MbRow, SectionCard } from '@/components/ui/BruteUI';
+import { GameIcon, type GameIconName } from '@/components/ui/GameIcon';
+import { resolveItemIconUrl } from '@/engine/art/aiAssets';
 import { useGame } from '@/state/GameContext';
 import { soundEngine } from '@/engine/audio/soundEffects';
+
+const MISSION_ICON_MAP: Record<string, GameIconName> = {
+  mis_clicks_25: 'fist',
+  mis_arena_first_battle: 'sword',
+  mis_arena_wins_3: 'crown',
+  mis_upgrades_3: 'anvil',
+  mis_skills_2: 'scroll',
+  mis_items_5: 'chest_wood',
+  mis_pvp_win_1: 'axe',
+  mis_boss_1: 'boss',
+  ach_clicks_500: 'dash_boot',
+  ach_level_10: 'helm',
+  ach_arena_wins_20: 'fire_rage',
+  ach_gold_10000: 'magnet',
+  ach_skills_8: 'scroll',
+  ach_pvp_wins_10: 'katana',
+  ach_bosses_5: 'boss_dragon',
+  ach_level_25: 'crown',
+};
+
+const DAILY_ICON_MAP: Record<number, GameIconName> = {
+  1: 'magnet',
+  2: 'training_dummy',
+  3: 'chest_wood',
+  4: 'chest_epic',
+  5: 'arena_coliseum',
+  6: 'arena_volcano',
+  7: 'chest_mythic',
+};
 
 export const MissionsView: React.FC = () => {
   const {
@@ -96,7 +137,13 @@ export const MissionsView: React.FC = () => {
               <MbRow
                 key={mission.id}
                 state={prog.claimed ? 'locked' : canClaim ? 'active' : 'default'}
-                icon={<span>{mission.icon}</span>}
+                icon={
+                  <GameIcon
+                    name={MISSION_ICON_MAP[mission.id] ?? 'scroll'}
+                    size={32}
+                    rounded={mission.id === 'mis_boss_1' || mission.id === 'ach_bosses_5'}
+                  />
+                }
                 title={mission.title}
                 level={`${prog.percent}%`}
                 desc={
@@ -113,9 +160,24 @@ export const MissionsView: React.FC = () => {
                       </span>
                     </div>
                     <div className="arsenal-stat-tags">
-                      <span className="arsenal-stat-tag">🪙 +{mission.rewardGold} Or</span>
-                      <span className="arsenal-stat-tag">💎 +{mission.rewardGems}</span>
-                      <span className="arsenal-stat-tag">⭐ +{mission.rewardXp} XP</span>
+                      <span
+                        className="arsenal-stat-tag"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                      >
+                        <Coins size={12} color="#c9820a" />+{mission.rewardGold} Or
+                      </span>
+                      <span
+                        className="arsenal-stat-tag"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                      >
+                        <Gem size={12} color="#2563eb" />+{mission.rewardGems}
+                      </span>
+                      <span
+                        className="arsenal-stat-tag"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                      >
+                        <Star size={12} fill="#f2c21b" color="#8b4a2b" />+{mission.rewardXp} XP
+                      </span>
                     </div>
                   </div>
                 }
@@ -245,8 +307,17 @@ export const MissionsView: React.FC = () => {
                   <Sparkles size={12} style={{ verticalAlign: 'middle', marginRight: 4 }} />
                   COFFRE QUOTIDIEN OUVERT ({RARITY_META[dailyBonusItem.rarity].label})
                 </div>
-                <div className="parchment-item-card__title">
-                  {SLOT_LABELS[dailyBonusItem.slot].icon} {dailyBonusItem.name} ajouté à ton sac !
+                <div
+                  className="parchment-item-card__title"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                >
+                  <img
+                    src={resolveItemIconUrl(dailyBonusItem)}
+                    alt={dailyBonusItem.name}
+                    width={22}
+                    height={22}
+                  />
+                  {dailyBonusItem.name} ajouté à ton sac !
                 </div>
               </div>
               <button
@@ -281,13 +352,27 @@ export const MissionsView: React.FC = () => {
                     Jour {reward.day}
                   </span>
                   <div className="daily-tile__icon" aria-hidden="true">
-                    {reward.icon}
+                    <GameIcon
+                      name={DAILY_ICON_MAP[reward.day] ?? 'chest_wood'}
+                      size={38}
+                      rounded={reward.day === 5 || reward.day === 6}
+                    />
                   </div>
                   <div className="daily-tile__title">{reward.title}</div>
                   <div className="daily-tile__rewards">
-                    🪙 {reward.gold} • 💎 {reward.gems}
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                      <Coins size={12} color="#c9820a" />
+                      {reward.gold}
+                    </span>{' '}
+                    •{' '}
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                      <Gem size={12} color="#2563eb" />
+                      {reward.gems}
+                    </span>
                     <br />
-                    ⭐ +{reward.xp} XP
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                      <Star size={12} fill="#f2c21b" color="#8b4a2b" />+{reward.xp} XP
+                    </span>
                   </div>
                   {reward.chestRarity && (
                     <span

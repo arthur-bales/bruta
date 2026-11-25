@@ -9,6 +9,8 @@ import { MAX_INVENTORY_SIZE } from '../../shared/constants.js';
 import { rollRandomLoot } from '../../shared/equipmentCatalog.js';
 import {
   getOpponentById,
+  getRequiredPreviousOpponent,
+  isOpponentUnlocked,
   OPPONENTS_CATALOG,
   SEED_RIVAL_FIGHTERS,
 } from '../../shared/opponentsCatalog.js';
@@ -54,6 +56,19 @@ router.post('/arena', async (req, res, next) => {
       return;
     }
 
+    const defeatedIds = Array.isArray(fighter.progress.defeatedOpponentIds)
+      ? fighter.progress.defeatedOpponentIds
+      : [];
+    if (!isOpponentUnlocked(opponent.id, defeatedIds)) {
+      const prevOpp = getRequiredPreviousOpponent(opponent.id);
+      res.status(400).json({
+        error: prevOpp
+          ? `Combat verrouillé ! Tu dois d’abord vaincre ${prevOpp.name} dans l’arène.`
+          : 'Combat verrouillé ! Termine le combat précédent pour débloquer cet adversaire.',
+      });
+      return;
+    }
+
     const now = Date.now();
     regenerateEnergy(fighter, now);
 
@@ -92,14 +107,17 @@ router.post('/arena', async (req, res, next) => {
     let lootItem: EquipmentItem | null = null;
 
     if (playerWon) {
-      gold = Math.max(10, Math.round(opponent.rewardGold * metrics.goldMultiplier));
+      gold = Math.max(8, Math.round(opponent.rewardGold * metrics.goldMultiplier));
       xp = Math.max(10, Math.round(opponent.rewardXp * metrics.xpMultiplier));
-      gems = opponent.isBoss ? 3 : 1;
+      gems = opponent.isBoss ? 2 : 1;
 
       const levelDiff = Math.max(0, Math.min(10, opponent.level - fighter.level + 3));
       rawRatingDelta = opponent.isBoss ? 25 : Math.min(25, 15 + levelDiff);
 
       fighter.progress.arenaWins += 1;
+      if (!defeatedIds.includes(opponent.id)) {
+        fighter.progress.defeatedOpponentIds = [...defeatedIds, opponent.id];
+      }
       if (opponent.isBoss) {
         fighter.progress.bossesDefeated += 1;
       }
@@ -120,11 +138,11 @@ router.post('/arena', async (req, res, next) => {
         fighter.inventory.push(lootItem);
       }
     } else {
-      // Consolation rewards so losing still feels encouraging
-      gold = Math.max(5, Math.round(opponent.rewardGold * 0.2 * metrics.goldMultiplier));
-      xp = Math.max(5, Math.round(opponent.rewardXp * 0.25 * metrics.xpMultiplier));
+      // No gold or gems on defeat — only minor training XP
+      gold = 0;
+      xp = Math.max(3, Math.round(opponent.rewardXp * 0.12 * metrics.xpMultiplier));
       gems = 0;
-      rawRatingDelta = -5;
+      rawRatingDelta = -8;
 
       fighter.progress.arenaLosses += 1;
       fighter.progress.winStreak = 0;
@@ -261,9 +279,9 @@ router.post('/pvp', async (req, res, next) => {
     let lootItem: EquipmentItem | null = null;
 
     if (playerWon) {
-      gold = Math.max(25, Math.round(targetBaseGold * metrics.goldMultiplier));
-      xp = Math.max(25, Math.round(targetBaseXp * metrics.xpMultiplier));
-      gems = 2;
+      gold = Math.max(18, Math.round(targetBaseGold * 0.65 * metrics.goldMultiplier));
+      xp = Math.max(20, Math.round(targetBaseXp * metrics.xpMultiplier));
+      gems = 1;
       rawRatingDelta = 22;
 
       fighter.progress.pvpWins += 1;
@@ -279,10 +297,10 @@ router.post('/pvp', async (req, res, next) => {
         fighter.inventory.push(lootItem);
       }
     } else {
-      gold = Math.max(10, Math.round(targetBaseGold * 0.2 * metrics.goldMultiplier));
-      xp = Math.max(10, Math.round(targetBaseXp * 0.25 * metrics.xpMultiplier));
+      gold = 0;
+      xp = Math.max(4, Math.round(targetBaseXp * 0.12 * metrics.xpMultiplier));
       gems = 0;
-      rawRatingDelta = -10;
+      rawRatingDelta = -12;
 
       fighter.progress.pvpLosses += 1;
       fighter.progress.winStreak = 0;

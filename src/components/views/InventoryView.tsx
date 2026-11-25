@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Hammer, Coins, ArrowUpRight, ShieldOff, Sparkles, Swords } from 'lucide-react';
+import { Hammer, Heart, Coins, ArrowUpRight, ShieldOff, Sparkles, Swords } from 'lucide-react';
 import type { AnimationName, EquipmentItem, EquipmentSlot, Rarity } from '@shared/types';
 import {
   MAX_FORGE_LEVEL,
@@ -15,6 +15,7 @@ import {
 } from '@shared/equipmentCatalog';
 import { PhaserCanvas } from '@/components/phaser/PhaserCanvas';
 import { PriceButton, SectionCard, formatCompact } from '@/components/ui/BruteUI';
+import { GameIcon, type GameIconName } from '@/components/ui/GameIcon';
 import { useGame } from '@/state/GameContext';
 import { soundEngine } from '@/engine/audio/soundEffects';
 import { resolveItemIconUrl } from '@/engine/art/aiAssets';
@@ -27,6 +28,15 @@ const SLOTS_LIST: EquipmentSlot[] = [
   'boots',
   'accessory',
 ];
+
+const SLOT_ICON_MAP: Record<EquipmentSlot, GameIconName> = {
+  weapon: 'sword',
+  helmet: 'helm',
+  armor: 'tunic',
+  gloves: 'fist',
+  boots: 'boots',
+  accessory: 'headband',
+};
 
 function computeItemScore(item: EquipmentItem | null): number {
   if (!item) return 0;
@@ -46,26 +56,53 @@ function computeItemScore(item: EquipmentItem | null): number {
 
 function renderItemStatTags(item: EquipmentItem) {
   const eff = getEffectiveItemStats(item);
-  const tags: string[] = [];
-  if (eff.bonusAttack > 0) tags.push(`⚔️ +${eff.bonusAttack} ATQ`);
-  if (eff.bonusDefense > 0) tags.push(`🛡️ +${eff.bonusDefense} DÉF`);
-  if (eff.bonusHp > 0) tags.push(`❤️ +${eff.bonusHp} PV`);
-  if (eff.stats.str > 0) tags.push(`FOR +${eff.stats.str}`);
-  if (eff.stats.def > 0) tags.push(`DÉF +${eff.stats.def}`);
-  if (eff.stats.agi > 0) tags.push(`AGI +${eff.stats.agi}`);
-  if (eff.stats.vit > 0) tags.push(`VIT +${eff.stats.vit}`);
-  if (eff.stats.lck > 0) tags.push(`CHA +${eff.stats.lck}`);
+  const tags: Array<{ key: string; icon?: React.ReactNode; label: string }> = [];
+  if (eff.bonusAttack > 0) {
+    tags.push({
+      key: 'atk',
+      icon: <GameIcon name="sword" size={13} />,
+      label: `+${eff.bonusAttack} ATQ`,
+    });
+  }
+  if (eff.bonusDefense > 0) {
+    tags.push({
+      key: 'def_b',
+      icon: <GameIcon name="iron_armor" size={13} />,
+      label: `+${eff.bonusDefense} DÉF`,
+    });
+  }
+  if (eff.bonusHp > 0) {
+    tags.push({
+      key: 'hp',
+      icon: <Heart size={12} fill="#d0412a" color="#8b1e14" />,
+      label: `+${eff.bonusHp} PV`,
+    });
+  }
+  if (eff.stats.str > 0) tags.push({ key: 'str', label: `FOR +${eff.stats.str}` });
+  if (eff.stats.def > 0) tags.push({ key: 'def', label: `DÉF +${eff.stats.def}` });
+  if (eff.stats.agi > 0) tags.push({ key: 'agi', label: `AGI +${eff.stats.agi}` });
+  if (eff.stats.vit > 0) tags.push({ key: 'vit', label: `VIT +${eff.stats.vit}` });
+  if (eff.stats.lck > 0) tags.push({ key: 'lck', label: `CHA +${eff.stats.lck}` });
 
   return (
     <div className="arsenal-stat-tags">
       {tags.map((t) => (
-        <span key={t} className="arsenal-stat-tag">
-          {t}
+        <span
+          key={t.key}
+          className="arsenal-stat-tag"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+        >
+          {t.icon}
+          {t.label}
         </span>
       ))}
       {eff.specialEffect && (
-        <span className="arsenal-stat-tag arsenal-stat-tag--effect">
-          ✨ {eff.specialEffect.label}
+        <span
+          className="arsenal-stat-tag arsenal-stat-tag--effect"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+        >
+          <Sparkles size={12} color="#d97706" />
+          {eff.specialEffect.label}
         </span>
       )}
     </div>
@@ -182,8 +219,12 @@ export const InventoryView: React.FC = () => {
           title="Armes & Équipement Équipés"
           right={
             <>
-              <span className="mb-tag mb-tag--orange">
-                ⚔️ Puissance {formatCompact(derivedStats.powerScore)}
+              <span
+                className="mb-tag mb-tag--orange"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}
+              >
+                <GameIcon name="sword" size={15} />
+                Puissance {formatCompact(derivedStats.powerScore)}
               </span>
               <span className="mb-tag">{equippedCount}/6</span>
             </>
@@ -198,7 +239,7 @@ export const InventoryView: React.FC = () => {
                 return (
                   <div key={slot} className="wood-slot wood-slot--empty">
                     <span className="wood-slot__empty-icon" aria-hidden="true">
-                      {slotMeta.icon}
+                      <GameIcon name={SLOT_ICON_MAP[slot]} size={30} />
                     </span>
                     <span className="wood-slot__label">{slotMeta.label}</span>
                   </div>
@@ -401,7 +442,7 @@ export const InventoryView: React.FC = () => {
                   setSlotFilter(slot);
                 }}
               >
-                <span>{SLOT_LABELS[slot].icon}</span>
+                <GameIcon name={SLOT_ICON_MAP[slot]} size={16} />
                 {SLOT_LABELS[slot].label}
               </button>
             ))}

@@ -210,7 +210,7 @@ export const DAILY_REWARDS_CATALOG: DailyRewardDefinition[] = [
   {
     day: 1,
     title: 'Bourse du Matin',
-    gold: 180,
+    gold: 99,
     gems: 5,
     xp: 60,
     icon: '🪙',
@@ -218,7 +218,7 @@ export const DAILY_REWARDS_CATALOG: DailyRewardDefinition[] = [
   {
     day: 2,
     title: 'Élan du Dojo',
-    gold: 300,
+    gold: 165,
     gems: 8,
     xp: 120,
     icon: '🥋',
@@ -226,7 +226,7 @@ export const DAILY_REWARDS_CATALOG: DailyRewardDefinition[] = [
   {
     day: 3,
     title: 'Coffre du Combattant',
-    gold: 420,
+    gold: 231,
     gems: 12,
     xp: 180,
     chestRarity: 'rare',
@@ -235,7 +235,7 @@ export const DAILY_REWARDS_CATALOG: DailyRewardDefinition[] = [
   {
     day: 4,
     title: 'Sac de Gemmes',
-    gold: 580,
+    gold: 319,
     gems: 18,
     xp: 260,
     icon: '💎',
@@ -243,7 +243,7 @@ export const DAILY_REWARDS_CATALOG: DailyRewardDefinition[] = [
   {
     day: 5,
     title: 'Prime du Colisée',
-    gold: 820,
+    gold: 451,
     gems: 22,
     xp: 360,
     icon: '🏆',
@@ -251,7 +251,7 @@ export const DAILY_REWARDS_CATALOG: DailyRewardDefinition[] = [
   {
     day: 6,
     title: 'Trésor du Volcan',
-    gold: 1150,
+    gold: 632,
     gems: 30,
     xp: 500,
     icon: '🔥',
@@ -259,7 +259,7 @@ export const DAILY_REWARDS_CATALOG: DailyRewardDefinition[] = [
   {
     day: 7,
     title: 'Coffre Légendaire !',
-    gold: 1800,
+    gold: 990,
     gems: 50,
     xp: 800,
     chestRarity: 'legendary',

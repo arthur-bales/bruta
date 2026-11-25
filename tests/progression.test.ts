@@ -166,8 +166,8 @@ describe('Progression & Economy Math (shared/progression.ts)', () => {
     const fighter = createInitialFighter('ftr_click', 'PoingRapide');
     const base = computeClickMetrics(fighter);
 
-    expect(base.goldPerClick).toBeGreaterThanOrEqual(2);
-    expect(base.xpPerClick).toBeGreaterThanOrEqual(2);
+    expect(base.goldPerClick).toBeGreaterThanOrEqual(1);
+    expect(base.xpPerClick).toBeGreaterThanOrEqual(1);
     expect(base.autoGoldPerSec).toBe(0);
     expect(base.autoXpPerSec).toBe(0);
 
@@ -209,7 +209,7 @@ describe('Progression & Economy Math (shared/progression.ts)', () => {
     const baseTime = 1_700_000_000_000;
     const fighter = createInitialFighter('ftr_idle', 'Dormeur');
     fighter.lastActiveAt = baseTime;
-    fighter.upgrades.auto_dummy = 5; // +10 gold/s, +5 xp/s
+    fighter.upgrades.auto_dummy = 5; // +5 gold/s, +5 xp/s
 
     // Under 30 seconds -> null
     expect(computeOfflineEarnings(fighter, baseTime + 29_000)).toBeNull();
@@ -218,7 +218,7 @@ describe('Progression & Economy Math (shared/progression.ts)', () => {
     const atOneMin = computeOfflineEarnings(fighter, baseTime + 60_000);
     expect(atOneMin).not.toBeNull();
     expect(atOneMin?.secondsAway).toBe(60);
-    expect(atOneMin?.goldEarned).toBe(600);
+    expect(atOneMin?.goldEarned).toBe(300);
     expect(atOneMin?.xpEarned).toBe(300);
 
     // Beyond 8 hours (e.g. 24 hours) -> capped at 8 hours (28800 seconds)
@@ -226,7 +226,7 @@ describe('Progression & Economy Math (shared/progression.ts)', () => {
     const atOneDay = computeOfflineEarnings(fighter, baseTime + 24 * 60 * 60 * 1000);
     expect(atOneDay).not.toBeNull();
     expect(atOneDay?.secondsAway).toBe(eightHoursSec);
-    expect(atOneDay?.goldEarned).toBe(eightHoursSec * 10);
+    expect(atOneDay?.goldEarned).toBe(eightHoursSec * 5);
     expect(atOneDay?.xpEarned).toBe(eightHoursSec * 5);
 
     // Without any auto upgrades -> null even after 1 hour

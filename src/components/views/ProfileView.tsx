@@ -1,5 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Dices, Play, Plus, Save } from 'lucide-react';
+import {
+  Coins,
+  Dices,
+  Flame,
+  Heart,
+  Play,
+  Plus,
+  Save,
+  Trophy,
+  Wind,
+  Zap,
+} from 'lucide-react';
 import type { AnimationName, CoreStats, FighterAppearance } from '@shared/types';
 import {
   ALL_ANIMATIONS,
@@ -17,6 +28,7 @@ import {
   SegmentedStat,
   formatCompact,
 } from '@/components/ui/BruteUI';
+import { GameIcon } from '@/components/ui/GameIcon';
 import { soundEngine } from '@/engine/audio/soundEffects';
 import { useGame } from '@/state/GameContext';
 
@@ -279,26 +291,37 @@ export const ProfileView: React.FC = () => {
           <div className="prof-mini-grid">
             <div className="prof-mini-box">
               <span>Points de Vie Max</span>
-              <strong>❤️ {derivedStats.maxHp} PV</strong>
+              <strong style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <Heart size={15} fill="#d0412a" color="#8b1e14" />
+                {derivedStats.maxHp} PV
+              </strong>
             </div>
             <div className="prof-mini-box">
               <span>Dégâts par coup</span>
-              <strong>
-                ⚔️ {derivedStats.minDamage} – {derivedStats.maxDamage}
+              <strong style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <GameIcon name="sword" size={16} />
+                {derivedStats.minDamage} – {derivedStats.maxDamage}
               </strong>
             </div>
             <div className="prof-mini-box">
               <span>Armure / Défense</span>
-              <strong>🛡️ {derivedStats.defense}</strong>
+              <strong style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <GameIcon name="iron_armor" size={16} />
+                {derivedStats.defense}
+              </strong>
             </div>
             <div className="prof-mini-box">
               <span>Vitesse / Initiative</span>
-              <strong>💨 {derivedStats.speed}</strong>
+              <strong style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <Wind size={15} color="#2563eb" />
+                {derivedStats.speed}
+              </strong>
             </div>
             <div className="prof-mini-box">
               <span>Coup Critique</span>
-              <strong>
-                💥 {Math.round(derivedStats.critChance * 100)}% (x{derivedStats.critMultiplier})
+              <strong style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <GameIcon name="fire_rage" size={16} />
+                {Math.round(derivedStats.critChance * 100)}% (x{derivedStats.critMultiplier})
               </strong>
             </div>
             <div className="prof-mini-box">
@@ -309,7 +332,10 @@ export const ProfileView: React.FC = () => {
             </div>
             <div className="prof-mini-box">
               <span>Contre-Attaque</span>
-              <strong>⚡ {Math.round(derivedStats.counterChance * 100)}%</strong>
+              <strong style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <Zap size={15} color="#e2700c" />
+                {Math.round(derivedStats.counterChance * 100)}%
+              </strong>
             </div>
             <div className="prof-mini-box">
               <span>Vol de Vie / Épines</span>
@@ -324,39 +350,58 @@ export const ProfileView: React.FC = () => {
           <div className="prof-mini-grid">
             <div className="prof-mini-box">
               <span>Arène (V / D)</span>
-              <strong>
-                ⚔️ {fighter.progress.arenaWins} / {fighter.progress.arenaLosses}
+              <strong style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <GameIcon name="sword" size={16} />
+                {fighter.progress.arenaWins} / {fighter.progress.arenaLosses}
               </strong>
             </div>
             <div className="prof-mini-box">
               <span>Duels PvP (V / D)</span>
-              <strong>
-                🥊 {fighter.progress.pvpWins} / {fighter.progress.pvpLosses}
+              <strong style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <GameIcon name="fist" size={16} />
+                {fighter.progress.pvpWins} / {fighter.progress.pvpLosses}
               </strong>
             </div>
             <div className="prof-mini-box">
               <span>Boss Vaincus</span>
-              <strong>👹 {fighter.progress.bossesDefeated}</strong>
+              <strong style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <GameIcon name="boss" size={18} rounded />
+                {fighter.progress.bossesDefeated}
+              </strong>
             </div>
             <div className="prof-mini-box">
               <span>Meilleure Série</span>
-              <strong>🔥 {fighter.progress.bestWinStreak}</strong>
+              <strong style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <Flame size={15} color="#d0412a" />
+                {fighter.progress.bestWinStreak}
+              </strong>
             </div>
             <div className="prof-mini-box">
               <span>Frappes au Dojo</span>
-              <strong>👊 {formatCompact(fighter.progress.totalClicks)}</strong>
+              <strong style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <GameIcon name="dumbbell" size={16} />
+                {formatCompact(fighter.progress.totalClicks)}
+              </strong>
             </div>
             <div className="prof-mini-box">
               <span>Record Combo</span>
-              <strong>⚡ x{fighter.progress.highestCombo}</strong>
+              <strong style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <Zap size={15} color="#e2700c" />x{fighter.progress.highestCombo}
+              </strong>
             </div>
             <div className="prof-mini-box">
               <span>Classement Elo</span>
-              <strong>🏆 {fighter.rating}</strong>
+              <strong style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <Trophy size={15} color="#c9820a" />
+                {fighter.rating}
+              </strong>
             </div>
             <div className="prof-mini-box">
               <span>Or Total Cumulé</span>
-              <strong>🪙 {formatCompact(fighter.progress.totalGoldEarned)}</strong>
+              <strong style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <Coins size={15} color="#c9820a" />
+                {formatCompact(fighter.progress.totalGoldEarned)}
+              </strong>
             </div>
           </div>
         </SectionCard>

@@ -60,8 +60,8 @@ export function createInitialFighter(id: string, name = 'Brute'): FighterProfile
     level: 1,
     xp: 0,
     xpToNext: xpRequiredForLevel(1),
-    gold: 150,
-    gems: 15,
+    gold: 40,
+    gems: 10,
     energy: MAX_ENERGY,
     maxEnergy: MAX_ENERGY,
     lastEnergyUpdate: now,
@@ -98,11 +98,12 @@ export function createInitialFighter(id: string, name = 'Brute'): FighterProfile
       pvpWins: 0,
       pvpLosses: 0,
       bossesDefeated: 0,
-      totalGoldEarned: 150,
+      totalGoldEarned: 40,
       upgradesBought: 0,
       highestCombo: 0,
       winStreak: 0,
       bestWinStreak: 0,
+      defeatedOpponentIds: [],
     },
     settings: {
       soundEnabled: true,
@@ -355,18 +356,18 @@ export function computeClickMetrics(fighter: FighterProfile): ClickMetrics {
   );
 
   const goldPerClick = Math.max(
-    2,
+    1,
     Math.round(
-      (3 + fighter.level * 0.7 + steelFists * 2 + totalLck * 0.15) *
+      (1 + fighter.level * 0.35 + steelFists * 0.85 + totalLck * 0.08) *
         comboRewardMult *
         goldMultiplier,
     ),
   );
 
   const xpPerClick = Math.max(
-    2,
+    1,
     Math.round(
-      (2 + fighter.level * 0.45 + steelFists * 0.5) * comboRewardMult * xpMultiplier,
+      (1.5 + fighter.level * 0.35 + steelFists * 0.4) * comboRewardMult * xpMultiplier,
     ),
   );
 
@@ -375,9 +376,9 @@ export function computeClickMetrics(fighter: FighterProfile): ClickMetrics {
   );
 
   const rawAutoGold =
-    autoDummy * 2 + autoApprentices * 7 + autoSpringHammer * 22 + autoSanctuary * 75;
+    autoDummy * 1 + autoApprentices * 3.5 + autoSpringHammer * 10 + autoSanctuary * 35;
   const rawAutoXp =
-    autoDummy * 1 + autoApprentices * 3 + autoSpringHammer * 8 + autoSanctuary * 24;
+    autoDummy * 1 + autoApprentices * 2.5 + autoSpringHammer * 7 + autoSanctuary * 20;
 
   const autoGoldPerSec = Number((rawAutoGold * goldMultiplier).toFixed(1));
   const autoXpPerSec = Number((rawAutoXp * xpMultiplier).toFixed(1));

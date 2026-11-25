@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Flame, Hand, Zap } from 'lucide-react';
+import { Coins, Flame, Hand, Settings, Star, Zap } from 'lucide-react';
 import { UPGRADES_CATALOG, getUpgradeCost } from '@shared/upgradesCatalog';
 import { PhaserCanvas } from '@/components/phaser/PhaserCanvas';
 import {
@@ -8,6 +8,7 @@ import {
   SectionCard,
   formatCompact,
 } from '@/components/ui/BruteUI';
+import { GameIcon, resolveUpgradeIconName } from '@/components/ui/GameIcon';
 import { soundEngine } from '@/engine/audio/soundEffects';
 import { useGame } from '@/state/GameContext';
 
@@ -65,11 +66,11 @@ export const ClickerView: React.FC = () => {
     registerClickStrike(payload);
 
     if (payload.isFever) {
-      setLastFeedback(`🔥 MODE FIÈVRE x2 ! Combo x${payload.combo} !`);
+      setLastFeedback(`MODE FIÈVRE x2 ! Combo x${payload.combo} !`);
     } else if (payload.isCrit) {
-      setLastFeedback(`💥 SUPER CRITIQUE ! Combo x${payload.combo} !`);
+      setLastFeedback(`SUPER CRITIQUE ! Combo x${payload.combo} !`);
     } else {
-      setLastFeedback(`👊 +${clickMetrics.goldPerClick} Or (Combo x${payload.combo})`);
+      setLastFeedback(`+${clickMetrics.goldPerClick} Or (Combo x${payload.combo})`);
     }
   };
 
@@ -96,19 +97,29 @@ export const ClickerView: React.FC = () => {
       <div className="dojo-metrics">
         <div className="dojo-metric-tile">
           <span>Or / Clic</span>
-          <strong>🪙 +{clickMetrics.goldPerClick}</strong>
+          <strong style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+            <Coins size={15} color="#c9820a" />+{clickMetrics.goldPerClick}
+          </strong>
         </div>
         <div className="dojo-metric-tile">
           <span>XP / Clic</span>
-          <strong>⭐ +{clickMetrics.xpPerClick}</strong>
+          <strong style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+            <Star size={15} fill="#f2c21b" color="#8b4a2b" />+{clickMetrics.xpPerClick}
+          </strong>
         </div>
         <div className="dojo-metric-tile">
           <span>Auto Or / s</span>
-          <strong>⚙️ {clickMetrics.autoGoldPerSec}/s</strong>
+          <strong style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+            <Settings size={15} color="#6b3f22" />
+            {clickMetrics.autoGoldPerSec}/s
+          </strong>
         </div>
         <div className="dojo-metric-tile">
           <span>Critique Clic</span>
-          <strong>💥 {Math.round(clickMetrics.clickCritChance * 100)}%</strong>
+          <strong style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+            <GameIcon name="fire_rage" size={16} />
+            {Math.round(clickMetrics.clickCritChance * 100)}%
+          </strong>
         </div>
       </div>
 
@@ -116,8 +127,9 @@ export const ClickerView: React.FC = () => {
       <SectionCard
         title="Dojo d’Entraînement"
         right={
-          <span className="mb-tag">
-            👊 {formatCompact(totalStrikes)} frappes
+          <span className="mb-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+            <GameIcon name="fist" size={15} />
+            {formatCompact(totalStrikes)} frappes
           </span>
         }
       >
@@ -210,7 +222,7 @@ export const ClickerView: React.FC = () => {
             return (
               <MbRow
                 key={upg.id}
-                icon={<span>{upg.icon}</span>}
+                icon={<GameIcon name={resolveUpgradeIconName(upg.id)} size={32} />}
                 title={upg.name}
                 level={`Niv.${currentLvl}/${upg.maxLevel}`}
                 desc={upg.effectLabel}

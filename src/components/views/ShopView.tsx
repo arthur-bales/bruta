@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { RefreshCw, Sparkles, Check, X } from 'lucide-react';
+import { RefreshCw, Sparkles, Check, X, Heart } from 'lucide-react';
 import type { EquipmentItem, ShopStockItem } from '@shared/types';
 import { RARITY_META, SLOT_LABELS } from '@shared/constants';
 import { CHEST_OFFERS, type ChestOffer } from '@shared/progression';
 import { CoinPill, MbRow, PriceButton, SectionCard, formatCompact } from '@/components/ui/BruteUI';
+import { GameIcon } from '@/components/ui/GameIcon';
 import { apiClient } from '@/state/apiClient';
 import { useGame } from '@/state/GameContext';
 import { soundEngine } from '@/engine/audio/soundEffects';
@@ -179,13 +180,28 @@ export const ShopView: React.FC = () => {
 
             <div className="arsenal-stat-tags" style={{ justifyContent: 'center', marginBottom: 16 }}>
               {revealedItem.bonusAttack ? (
-                <span className="arsenal-stat-tag">⚔️ +{revealedItem.bonusAttack} ATQ</span>
+                <span
+                  className="arsenal-stat-tag"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                >
+                  <GameIcon name="sword" size={13} />+{revealedItem.bonusAttack} ATQ
+                </span>
               ) : null}
               {revealedItem.bonusDefense ? (
-                <span className="arsenal-stat-tag">🛡️ +{revealedItem.bonusDefense} DÉF</span>
+                <span
+                  className="arsenal-stat-tag"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                >
+                  <GameIcon name="iron_armor" size={13} />+{revealedItem.bonusDefense} DÉF
+                </span>
               ) : null}
               {revealedItem.bonusHp ? (
-                <span className="arsenal-stat-tag">❤️ +{revealedItem.bonusHp} PV</span>
+                <span
+                  className="arsenal-stat-tag"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                >
+                  <Heart size={12} fill="#d0412a" color="#8b1e14" />+{revealedItem.bonusHp} PV
+                </span>
               ) : null}
               {Object.entries(revealedItem.baseStats).map(([k, v]) =>
                 v ? (
@@ -195,8 +211,12 @@ export const ShopView: React.FC = () => {
                 ) : null,
               )}
               {revealedItem.specialEffect && (
-                <span className="arsenal-stat-tag arsenal-stat-tag--effect">
-                  ✨ {revealedItem.specialEffect.label}
+                <span
+                  className="arsenal-stat-tag arsenal-stat-tag--effect"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                >
+                  <Sparkles size={12} color="#d97706" />
+                  {revealedItem.specialEffect.label}
                 </span>
               )}
             </div>
@@ -336,13 +356,28 @@ export const ShopView: React.FC = () => {
                       <span>{tpl.description}</span>
                       <div className="arsenal-stat-tags">
                         {tpl.bonusAttack ? (
-                          <span className="arsenal-stat-tag">⚔️ +{tpl.bonusAttack} ATQ</span>
+                          <span
+                            className="arsenal-stat-tag"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                          >
+                            <GameIcon name="sword" size={13} />+{tpl.bonusAttack} ATQ
+                          </span>
                         ) : null}
                         {tpl.bonusDefense ? (
-                          <span className="arsenal-stat-tag">🛡️ +{tpl.bonusDefense} DÉF</span>
+                          <span
+                            className="arsenal-stat-tag"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                          >
+                            <GameIcon name="iron_armor" size={13} />+{tpl.bonusDefense} DÉF
+                          </span>
                         ) : null}
                         {tpl.bonusHp ? (
-                          <span className="arsenal-stat-tag">❤️ +{tpl.bonusHp} PV</span>
+                          <span
+                            className="arsenal-stat-tag"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                          >
+                            <Heart size={12} fill="#d0412a" color="#8b1e14" />+{tpl.bonusHp} PV
+                          </span>
                         ) : null}
                         {Object.entries(tpl.baseStats).map(([k, v]) =>
                           v ? (
@@ -352,8 +387,12 @@ export const ShopView: React.FC = () => {
                           ) : null,
                         )}
                         {tpl.specialEffect && (
-                          <span className="arsenal-stat-tag arsenal-stat-tag--effect">
-                            ✨ {tpl.specialEffect.label}
+                          <span
+                            className="arsenal-stat-tag arsenal-stat-tag--effect"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                          >
+                            <Sparkles size={12} color="#d97706" />
+                            {tpl.specialEffect.label}
                           </span>
                         )}
                       </div>

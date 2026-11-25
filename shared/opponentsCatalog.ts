@@ -32,7 +32,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
     rating: 920,
     isBoss: false,
     arena: 'coliseum',
-    baseStats: { str: 5, def: 4, agi: 4, vit: 5, lck: 3 },
+    baseStats: { str: 8, def: 6, agi: 6, vit: 8, lck: 5 },
     appearance: {
       skinColor: '#f8c8a0',
       hairStyle: 'curly',
@@ -51,7 +51,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
       'opp_caillou',
     ),
     activeSkills: [],
-    rewardGold: 55,
+    rewardGold: 25,
     rewardXp: 45,
     lootChance: 0.45,
     lootMinRarity: 'common',
@@ -65,7 +65,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
     rating: 980,
     isBoss: false,
     arena: 'dojo',
-    baseStats: { str: 7, def: 5, agi: 8, vit: 6, lck: 5 },
+    baseStats: { str: 10, def: 8, agi: 12, vit: 9, lck: 8 },
     appearance: {
       skinColor: '#ffe1c6',
       hairStyle: 'spiky',
@@ -87,7 +87,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
       'opp_kenshi',
     ),
     activeSkills: [{ id: 'meteor_strike', level: 1 }],
-    rewardGold: 85,
+    rewardGold: 38,
     rewardXp: 70,
     lootChance: 0.48,
     lootMinRarity: 'common',
@@ -101,7 +101,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
     rating: 1050,
     isBoss: false,
     arena: 'coliseum',
-    baseStats: { str: 10, def: 8, agi: 9, vit: 9, lck: 10 },
+    baseStats: { str: 15, def: 12, agi: 13, vit: 13, lck: 15 },
     appearance: {
       skinColor: '#ffe1c6',
       hairStyle: 'twin_tails',
@@ -125,7 +125,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
       1,
     ),
     activeSkills: [{ id: 'furious_whirlwind', level: 1 }],
-    rewardGold: 135,
+    rewardGold: 61,
     rewardXp: 115,
     lootChance: 0.52,
     lootMinRarity: 'common',
@@ -139,7 +139,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
     rating: 1150,
     isBoss: true,
     arena: 'coliseum',
-    baseStats: { str: 15, def: 13, agi: 7, vit: 18, lck: 7 },
+    baseStats: { str: 21, def: 19, agi: 10, vit: 25, lck: 10 },
     appearance: {
       skinColor: '#c68052',
       hairStyle: 'mohawk',
@@ -166,7 +166,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
       { id: 'meteor_strike', level: 2 },
       { id: 'warrior_cry', level: 2 },
     ],
-    rewardGold: 280,
+    rewardGold: 126,
     rewardXp: 230,
     lootChance: 0.85,
     lootMinRarity: 'rare',
@@ -180,7 +180,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
     rating: 1240,
     isBoss: false,
     arena: 'dojo',
-    baseStats: { str: 17, def: 11, agi: 22, vit: 15, lck: 14 },
+    baseStats: { str: 24, def: 16, agi: 31, vit: 21, lck: 20 },
     appearance: {
       skinColor: '#f8c8a0',
       hairStyle: 'ponytail',
@@ -207,7 +207,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
       { id: 'furious_whirlwind', level: 3 },
       { id: 'thunder_bolt', level: 2 },
     ],
-    rewardGold: 330,
+    rewardGold: 148,
     rewardXp: 280,
     lootChance: 0.58,
     lootMinRarity: 'rare',
@@ -221,7 +221,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
     rating: 1380,
     isBoss: true,
     arena: 'dojo',
-    baseStats: { str: 22, def: 16, agi: 28, vit: 24, lck: 24 },
+    baseStats: { str: 31, def: 23, agi: 39, vit: 33, lck: 33 },
     appearance: {
       skinColor: '#ffe1c6',
       hairStyle: 'twin_tails',
@@ -248,7 +248,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
       { id: 'shadow_dance', level: 3 },
       { id: 'vampiric_blade', level: 3 },
     ],
-    rewardGold: 620,
+    rewardGold: 279,
     rewardXp: 510,
     lootChance: 0.92,
     lootMinRarity: 'epic',
@@ -262,7 +262,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
     rating: 1510,
     isBoss: false,
     arena: 'coliseum',
-    baseStats: { str: 30, def: 32, agi: 16, vit: 34, lck: 14 },
+    baseStats: { str: 41, def: 44, agi: 23, vit: 47, lck: 20 },
     appearance: {
       skinColor: '#e5a578',
       hairStyle: 'bald_bandana',
@@ -289,7 +289,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
       { id: 'warrior_cry', level: 4 },
       { id: 'meteor_strike', level: 4 },
     ],
-    rewardGold: 780,
+    rewardGold: 351,
     rewardXp: 680,
     lootChance: 0.65,
     lootMinRarity: 'rare',
@@ -303,7 +303,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
     rating: 1720,
     isBoss: true,
     arena: 'volcano',
-    baseStats: { str: 44, def: 34, agi: 30, vit: 48, lck: 26 },
+    baseStats: { str: 60, def: 47, agi: 41, vit: 66, lck: 36 },
     appearance: {
       skinColor: '#8d5534',
       hairStyle: 'spiky',
@@ -331,7 +331,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
       { id: 'vampiric_blade', level: 5 },
       { id: 'thunder_bolt', level: 5 },
     ],
-    rewardGold: 1550,
+    rewardGold: 698,
     rewardXp: 1320,
     lootChance: 0.95,
     lootMinRarity: 'epic',
@@ -345,7 +345,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
     rating: 1890,
     isBoss: false,
     arena: 'dojo',
-    baseStats: { str: 50, def: 38, agi: 48, vit: 48, lck: 40 },
+    baseStats: { str: 69, def: 52, agi: 66, vit: 66, lck: 55 },
     appearance: {
       skinColor: '#ffe1c6',
       hairStyle: 'bob',
@@ -372,7 +372,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
       { id: 'shadow_dance', level: 6 },
       { id: 'thunder_bolt', level: 6 },
     ],
-    rewardGold: 1850,
+    rewardGold: 832,
     rewardXp: 1650,
     lootChance: 0.72,
     lootMinRarity: 'epic',
@@ -386,7 +386,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
     rating: 2060,
     isBoss: false,
     arena: 'volcano',
-    baseStats: { str: 64, def: 46, agi: 42, vit: 62, lck: 36 },
+    baseStats: { str: 87, def: 63, agi: 58, vit: 85, lck: 50 },
     appearance: {
       skinColor: '#e5a578',
       hairStyle: 'mohawk',
@@ -414,7 +414,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
       { id: 'warrior_cry', level: 7 },
       { id: 'vampiric_blade', level: 7 },
     ],
-    rewardGold: 2600,
+    rewardGold: 1170,
     rewardXp: 2300,
     lootChance: 0.78,
     lootMinRarity: 'legendary',
@@ -428,7 +428,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
     rating: 2350,
     isBoss: true,
     arena: 'volcano',
-    baseStats: { str: 78, def: 64, agi: 58, vit: 82, lck: 52 },
+    baseStats: { str: 106, def: 87, agi: 79, vit: 112, lck: 71 },
     appearance: {
       skinColor: '#c68052',
       hairStyle: 'samurai_bun',
@@ -456,7 +456,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
       { id: 'shadow_dance', level: 8 },
       { id: 'vampiric_blade', level: 9 },
     ],
-    rewardGold: 4800,
+    rewardGold: 2160,
     rewardXp: 4200,
     lootChance: 1.0,
     lootMinRarity: 'legendary',
@@ -470,7 +470,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
     rating: 2700,
     isBoss: true,
     arena: 'volcano',
-    baseStats: { str: 96, def: 82, agi: 78, vit: 102, lck: 70 },
+    baseStats: { str: 131, def: 112, agi: 106, vit: 139, lck: 95 },
     appearance: {
       skinColor: '#ffe1c6',
       hairStyle: 'spiky',
@@ -498,7 +498,7 @@ export const OPPONENTS_CATALOG: OpponentDefinition[] = [
       { id: 'thunder_bolt', level: 10 },
       { id: 'vampiric_blade', level: 10 },
     ],
-    rewardGold: 8500,
+    rewardGold: 3825,
     rewardXp: 7200,
     lootChance: 1.0,
     lootMinRarity: 'mythic',
@@ -527,7 +527,7 @@ export const SEED_RIVAL_FIGHTERS: SeedRivalFighter[] = [
     isBoss: false,
     isPlayerGhost: true,
     arena: 'dojo',
-    baseStats: { str: 26, def: 18, agi: 29, vit: 23, lck: 19 },
+    baseStats: { str: 36, def: 25, agi: 40, vit: 32, lck: 27 },
     appearance: {
       skinColor: '#f8c8a0',
       hairStyle: 'samurai_bun',
@@ -554,7 +554,7 @@ export const SEED_RIVAL_FIGHTERS: SeedRivalFighter[] = [
       { id: 'furious_whirlwind', level: 4 },
       { id: 'shadow_dance', level: 3 },
     ],
-    rewardGold: 420,
+    rewardGold: 189,
     rewardXp: 340,
     lootChance: 0.4,
     lootMinRarity: 'rare',
@@ -571,7 +571,7 @@ export const SEED_RIVAL_FIGHTERS: SeedRivalFighter[] = [
     isBoss: false,
     isPlayerGhost: true,
     arena: 'coliseum',
-    baseStats: { str: 19, def: 14, agi: 20, vit: 18, lck: 17 },
+    baseStats: { str: 27, def: 20, agi: 28, vit: 25, lck: 24 },
     appearance: {
       skinColor: '#ffe1c6',
       hairStyle: 'twin_tails',
@@ -598,7 +598,7 @@ export const SEED_RIVAL_FIGHTERS: SeedRivalFighter[] = [
       { id: 'meteor_strike', level: 3 },
       { id: 'warrior_cry', level: 2 },
     ],
-    rewardGold: 260,
+    rewardGold: 117,
     rewardXp: 220,
     lootChance: 0.35,
     lootMinRarity: 'common',
@@ -615,7 +615,7 @@ export const SEED_RIVAL_FIGHTERS: SeedRivalFighter[] = [
     isBoss: false,
     isPlayerGhost: true,
     arena: 'coliseum',
-    baseStats: { str: 11, def: 10, agi: 8, vit: 12, lck: 8 },
+    baseStats: { str: 16, def: 15, agi: 12, vit: 17, lck: 12 },
     appearance: {
       skinColor: '#e5a578',
       hairStyle: 'bald_bandana',
@@ -639,7 +639,7 @@ export const SEED_RIVAL_FIGHTERS: SeedRivalFighter[] = [
       1,
     ),
     activeSkills: [{ id: 'warrior_cry', level: 2 }],
-    rewardGold: 145,
+    rewardGold: 65,
     rewardXp: 125,
     lootChance: 0.35,
     lootMinRarity: 'common',
@@ -656,7 +656,7 @@ export const SEED_RIVAL_FIGHTERS: SeedRivalFighter[] = [
     isBoss: false,
     isPlayerGhost: true,
     arena: 'volcano',
-    baseStats: { str: 38, def: 28, agi: 36, vit: 35, lck: 30 },
+    baseStats: { str: 52, def: 39, agi: 50, vit: 48, lck: 41 },
     appearance: {
       skinColor: '#8d5534',
       hairStyle: 'spiky',
@@ -683,7 +683,7 @@ export const SEED_RIVAL_FIGHTERS: SeedRivalFighter[] = [
       { id: 'thunder_bolt', level: 6 },
       { id: 'meteor_strike', level: 5 },
     ],
-    rewardGold: 890,
+    rewardGold: 400,
     rewardXp: 760,
     lootChance: 0.45,
     lootMinRarity: 'epic',
@@ -700,7 +700,7 @@ export const SEED_RIVAL_FIGHTERS: SeedRivalFighter[] = [
     isBoss: false,
     isPlayerGhost: true,
     arena: 'dojo',
-    baseStats: { str: 54, def: 44, agi: 52, vit: 52, lck: 46 },
+    baseStats: { str: 74, def: 60, agi: 71, vit: 71, lck: 63 },
     appearance: {
       skinColor: '#ffe1c6',
       hairStyle: 'ponytail',
@@ -728,7 +728,7 @@ export const SEED_RIVAL_FIGHTERS: SeedRivalFighter[] = [
       { id: 'vampiric_blade', level: 7 },
       { id: 'thunder_bolt', level: 6 },
     ],
-    rewardGold: 1950,
+    rewardGold: 878,
     rewardXp: 1680,
     lootChance: 0.5,
     lootMinRarity: 'epic',
@@ -745,7 +745,7 @@ export const SEED_RIVAL_FIGHTERS: SeedRivalFighter[] = [
     isBoss: false,
     isPlayerGhost: true,
     arena: 'volcano',
-    baseStats: { str: 76, def: 64, agi: 62, vit: 74, lck: 58 },
+    baseStats: { str: 104, def: 87, agi: 85, vit: 101, lck: 79 },
     appearance: {
       skinColor: '#c68052',
       hairStyle: 'mohawk',
@@ -773,7 +773,7 @@ export const SEED_RIVAL_FIGHTERS: SeedRivalFighter[] = [
       { id: 'shadow_dance', level: 9 },
       { id: 'vampiric_blade', level: 9 },
     ],
-    rewardGold: 3600,
+    rewardGold: 1620,
     rewardXp: 3100,
     lootChance: 0.55,
     lootMinRarity: 'legendary',
@@ -792,4 +792,21 @@ export function getOpponentById(id: string): OpponentDefinition | undefined {
 export function getAvailableOpponentsForLevel(level: number): OpponentDefinition[] {
   const maxVisibleLevel = Math.max(5, level + 6);
   return OPPONENTS_CATALOG.filter((opp, idx) => idx < 4 || opp.level <= maxVisibleLevel);
+}
+
+export function getRequiredPreviousOpponent(opponentId: string): OpponentDefinition | null {
+  const idx = OPPONENTS_CATALOG.findIndex((opp) => opp.id === opponentId);
+  if (idx <= 0) return null;
+  return OPPONENTS_CATALOG[idx - 1] ?? null;
+}
+
+export function isOpponentUnlocked(
+  opponentId: string,
+  defeatedOpponentIds: readonly string[] = [],
+): boolean {
+  const idx = OPPONENTS_CATALOG.findIndex((opp) => opp.id === opponentId);
+  if (idx === -1) return true; // PvP/seed rivals are not gated by PvE ladder
+  if (idx === 0) return true;
+  const prev = OPPONENTS_CATALOG[idx - 1];
+  return Boolean(prev && defeatedOpponentIds.includes(prev.id));
 }

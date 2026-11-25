@@ -171,7 +171,16 @@ describe('Backend REST API End-to-End Integration', () => {
     fighter = second.data.fighter;
   });
 
-  it('POST /api/combat/arena runs authoritative server battle vs opp_petit_caillou', async () => {
+  it('POST /api/combat/arena blocks locked opponents and awards 0 gold on defeat', async () => {
+    // Next opponent (opp_kenshi_apprenti) MUST be locked before beating opp_petit_caillou
+    const lockedRes = await apiFetch<{ error: string }>('/api/combat/arena', {
+      method: 'POST',
+      token,
+      body: { opponentId: 'opp_kenshi_apprenti' },
+    });
+    expect(lockedRes.status).toBe(400);
+
+    // First opponent (opp_petit_caillou) is unlocked
     const res = await apiFetch<{ battle: BattleResult; fighter: FighterProfile }>(
       '/api/combat/arena',
       {
@@ -185,7 +194,12 @@ describe('Backend REST API End-to-End Integration', () => {
     expect(res.data.battle.right.id).toBe('opp_petit_caillou');
     expect(['left', 'right']).toContain(res.data.battle.winner);
     expect(res.data.battle.events.length).toBeGreaterThan(2);
-    expect(res.data.battle.rewards.gold).toBeGreaterThan(0);
+    if (res.data.battle.winner === 'left') {
+      expect(res.data.battle.rewards.gold).toBeGreaterThan(0);
+      expect(res.data.fighter.progress.defeatedOpponentIds).toContain('opp_petit_caillou');
+    } else {
+      expect(res.data.battle.rewards.gold).toBe(0);
+    }
     expect(res.data.battle.rewards.xp).toBeGreaterThan(0);
     expect(res.data.fighter.progress.arenaBattles).toBe(1);
     fighter = res.data.fighter;
@@ -228,11 +242,24 @@ describe('Backend REST API End-to-End Integration', () => {
     expect(res.status).toBe(200);
     expect(res.data.battle.right.id).toBe(rival!.playerId);
     expect(res.data.battle.events.length).toBeGreaterThan(2);
+    if (res.data.battle.winner !== 'left') {
+      expect(res.data.battle.rewards.gold).toBe(0);
+    }
     expect(res.data.fighter.progress.pvpWins + res.data.fighter.progress.pvpLosses).toBe(1);
     fighter = res.data.fighter;
   });
 
   it('GET /api/shop, POST /api/shop/open-chest, POST /api/inventory/equip & /forge work end-to-end', async () => {
+    // Earn enough gold via click-sync under the tighter economy for chest + forge + skill tests
+    for (let i = 0; i < 4 && fighter.gold < 500; i++) {
+      const topUp = await apiFetch<{ fighter: FighterProfile }>('/api/player/click-sync', {
+        method: 'POST',
+        token,
+        body: { clicks: 60, feverClicks: 60, highestCombo: 60 },
+      });
+      fighter = topUp.data.fighter;
+    }
+
     // 1. Fetch shop
     const shopRes = await apiFetch<{
       stock: ShopStockItem[];

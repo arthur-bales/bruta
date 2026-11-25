@@ -3,6 +3,7 @@ import { Swords, RefreshCw, Crown } from 'lucide-react';
 import type { LeaderboardEntry } from '@shared/types';
 import { AI_HERO_POSES, resolveRivalSprite } from '@/engine/art/aiAssets';
 import { CoinPill, HeartHp, SectionCard } from '@/components/ui/BruteUI';
+import { GameIcon } from '@/components/ui/GameIcon';
 import { apiClient } from '@/state/apiClient';
 import { useGame } from '@/state/GameContext';
 import { soundEngine } from '@/engine/audio/soundEffects';
@@ -65,7 +66,7 @@ export const LeaderboardView: React.FC = () => {
             )}
             <CoinPill
               kind="energy"
-              value={`⚡ ${fighter.energy}/${fighter.maxEnergy}`}
+              value={`${fighter.energy}/${fighter.maxEnergy}`}
               title="Énergie d'arène"
               className="arena-energy-pill"
             />
@@ -143,7 +144,10 @@ export const LeaderboardView: React.FC = () => {
                     <div title={`Puissance : ${entry.powerScore}`}>
                       <HeartHp hp={entry.powerScore} label="puissance" hideLabel />
                     </div>
-                    <span className="lb-elo-pill">🏆 {entry.rating} Elo</span>
+                    <span className="lb-elo-pill">
+                      <GameIcon name="crown" size={16} />
+                      {entry.rating} Elo
+                    </span>
 
                     {!isMe && (
                       <button
