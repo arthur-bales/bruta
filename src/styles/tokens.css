@@ -1,0 +1,63 @@
+/* ============================================================================
+   BRUTE LEGENDS — Chibi Anime Arena Design Tokens
+   Warm sunlit parchment, cel-shaded ink borders, tactile arcade energy
+   ============================================================================ */
+
+:root {
+  /* Surfaces */
+  --bg-canvas: #efe5cf;
+  --bg-parchment: #fdf8ec;
+  --bg-parchment-alt: #f5ebd4;
+  --bg-panel: #fffdf7;
+  --bg-wood: #5e3824;
+  --bg-wood-dark: #432516;
+  --bg-wood-light: #7c4b30;
+
+  /* Ink & Borders */
+  --ink-strong: #231917;
+  --ink-body: #3c2e28;
+  --ink-muted: #766456;
+  --border-ink: 3px solid #231917;
+  --border-ink-thin: 2px solid #231917;
+
+  /* Brand & Action Accents */
+  --accent-flame: #ef5b36;
+  --accent-flame-dark: #c93d1c;
+  --accent-gold: #f5b025;
+  --accent-gold-dark: #c77e08;
+  --accent-sky: #2d8cf0;
+  --accent-sky-dark: #1964b8;
+  --accent-jade: #22a06b;
+  --accent-jade-dark: #14754c;
+  --accent-crimson: #dc2626;
+  --accent-gem: #0ea5e9;
+  --accent-energy: #f97316;
+
+  /* Rarity Colors */
+  --rarity-common: #64748b;
+  --rarity-rare: #1d72c9;
+  --rarity-epic: #9b30c9;
+  --rarity-legendary: #d97706;
+  --rarity-mythic: #dc2626;
+
+  /* Typography */
+  --font-display: 'Fredoka', system-ui, -apple-system, sans-serif;
+  --font-body: 'Nunito', system-ui, -apple-system, sans-serif;
+
+  /* Elevation / Comic Shadows */
+  --shadow-comic: 0 4px 0 #231917;
+  --shadow-comic-sm: 0 3px 0 #231917;
+  --shadow-comic-lg: 0 6px 0 #231917;
+  --shadow-soft: 0 10px 24px rgba(35, 25, 23, 0.14);
+
+  /* Radii */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+
+  /* Layout Dimensions */
+  --sidebar-width: 248px;
+  --topbar-height: 66px;
+  --mobile-nav-height: 68px;
+}

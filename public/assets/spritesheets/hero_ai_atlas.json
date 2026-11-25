@@ -1,0 +1,74 @@
+{
+  "frameWidth": 256,
+  "frameHeight": 256,
+  "cols": 4,
+  "rows": 11,
+  "animations": {
+    "idle": {
+      "row": 0,
+      "startFrame": 0,
+      "endFrame": 3,
+      "frames": 4
+    },
+    "walk": {
+      "row": 1,
+      "startFrame": 4,
+      "endFrame": 7,
+      "frames": 4
+    },
+    "run": {
+      "row": 2,
+      "startFrame": 8,
+      "endFrame": 11,
+      "frames": 4
+    },
+    "attack": {
+      "row": 3,
+      "startFrame": 12,
+      "endFrame": 15,
+      "frames": 4
+    },
+    "heavy_attack": {
+      "row": 4,
+      "startFrame": 16,
+      "endFrame": 19,
+      "frames": 4
+    },
+    "hit": {
+      "row": 5,
+      "startFrame": 20,
+      "endFrame": 23,
+      "frames": 4
+    },
+    "dodge": {
+      "row": 6,
+      "startFrame": 24,
+      "endFrame": 27,
+      "frames": 4
+    },
+    "block": {
+      "row": 7,
+      "startFrame": 28,
+      "endFrame": 31,
+      "frames": 4
+    },
+    "victory": {
+      "row": 8,
+      "startFrame": 32,
+      "endFrame": 35,
+      "frames": 4
+    },
+    "defeat": {
+      "row": 9,
+      "startFrame": 36,
+      "endFrame": 39,
+      "frames": 4
+    },
+    "special": {
+      "row": 10,
+      "startFrame": 40,
+      "endFrame": 43,
+      "frames": 4
+    }
+  }
+}

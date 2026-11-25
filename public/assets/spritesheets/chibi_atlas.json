@@ -1,0 +1,799 @@
+{
+  "meta": {
+    "game": "Brute Legends",
+    "style": "cel-shaded-chibi-anime",
+    "format": "regular-grid-spritesheet",
+    "sheetWidth": 1280,
+    "sheetHeight": 1760,
+    "frameWidth": 160,
+    "frameHeight": 160,
+    "maxCols": 8,
+    "rows": 11,
+    "totalActiveFrames": 66,
+    "referenceSvg": "chibi_base_grid.svg",
+    "generatedAt": "2026-11-25T11:13:11.098Z"
+  },
+  "animations": {
+    "idle": {
+      "row": 0,
+      "frames": 6,
+      "startFrame": 0,
+      "endFrame": 5,
+      "frameRate": 8,
+      "repeat": -1,
+      "label": "Repos (Idle)",
+      "cells": [
+        {
+          "index": 0,
+          "col": 0,
+          "row": 0,
+          "x": 0,
+          "y": 0,
+          "width": 160,
+          "height": 160,
+          "expression": "normal"
+        },
+        {
+          "index": 1,
+          "col": 1,
+          "row": 0,
+          "x": 160,
+          "y": 0,
+          "width": 160,
+          "height": 160,
+          "expression": "normal"
+        },
+        {
+          "index": 2,
+          "col": 2,
+          "row": 0,
+          "x": 320,
+          "y": 0,
+          "width": 160,
+          "height": 160,
+          "expression": "normal"
+        },
+        {
+          "index": 3,
+          "col": 3,
+          "row": 0,
+          "x": 480,
+          "y": 0,
+          "width": 160,
+          "height": 160,
+          "expression": "normal"
+        },
+        {
+          "index": 4,
+          "col": 4,
+          "row": 0,
+          "x": 640,
+          "y": 0,
+          "width": 160,
+          "height": 160,
+          "expression": "normal"
+        },
+        {
+          "index": 5,
+          "col": 5,
+          "row": 0,
+          "x": 800,
+          "y": 0,
+          "width": 160,
+          "height": 160,
+          "expression": "normal"
+        }
+      ]
+    },
+    "walk": {
+      "row": 1,
+      "frames": 6,
+      "startFrame": 8,
+      "endFrame": 13,
+      "frameRate": 10,
+      "repeat": -1,
+      "label": "Marche (Walk)",
+      "cells": [
+        {
+          "index": 8,
+          "col": 0,
+          "row": 1,
+          "x": 0,
+          "y": 160,
+          "width": 160,
+          "height": 160,
+          "expression": "normal"
+        },
+        {
+          "index": 9,
+          "col": 1,
+          "row": 1,
+          "x": 160,
+          "y": 160,
+          "width": 160,
+          "height": 160,
+          "expression": "normal"
+        },
+        {
+          "index": 10,
+          "col": 2,
+          "row": 1,
+          "x": 320,
+          "y": 160,
+          "width": 160,
+          "height": 160,
+          "expression": "normal"
+        },
+        {
+          "index": 11,
+          "col": 3,
+          "row": 1,
+          "x": 480,
+          "y": 160,
+          "width": 160,
+          "height": 160,
+          "expression": "normal"
+        },
+        {
+          "index": 12,
+          "col": 4,
+          "row": 1,
+          "x": 640,
+          "y": 160,
+          "width": 160,
+          "height": 160,
+          "expression": "normal"
+        },
+        {
+          "index": 13,
+          "col": 5,
+          "row": 1,
+          "x": 800,
+          "y": 160,
+          "width": 160,
+          "height": 160,
+          "expression": "normal"
+        }
+      ]
+    },
+    "run": {
+      "row": 2,
+      "frames": 6,
+      "startFrame": 16,
+      "endFrame": 21,
+      "frameRate": 14,
+      "repeat": -1,
+      "label": "Course (Run)",
+      "cells": [
+        {
+          "index": 16,
+          "col": 0,
+          "row": 2,
+          "x": 0,
+          "y": 320,
+          "width": 160,
+          "height": 160,
+          "expression": "focused"
+        },
+        {
+          "index": 17,
+          "col": 1,
+          "row": 2,
+          "x": 160,
+          "y": 320,
+          "width": 160,
+          "height": 160,
+          "expression": "focused"
+        },
+        {
+          "index": 18,
+          "col": 2,
+          "row": 2,
+          "x": 320,
+          "y": 320,
+          "width": 160,
+          "height": 160,
+          "expression": "focused"
+        },
+        {
+          "index": 19,
+          "col": 3,
+          "row": 2,
+          "x": 480,
+          "y": 320,
+          "width": 160,
+          "height": 160,
+          "expression": "focused"
+        },
+        {
+          "index": 20,
+          "col": 4,
+          "row": 2,
+          "x": 640,
+          "y": 320,
+          "width": 160,
+          "height": 160,
+          "expression": "focused"
+        },
+        {
+          "index": 21,
+          "col": 5,
+          "row": 2,
+          "x": 800,
+          "y": 320,
+          "width": 160,
+          "height": 160,
+          "expression": "focused"
+        }
+      ]
+    },
+    "attack": {
+      "row": 3,
+      "frames": 6,
+      "startFrame": 24,
+      "endFrame": 29,
+      "frameRate": 15,
+      "repeat": 0,
+      "label": "Attaque",
+      "cells": [
+        {
+          "index": 24,
+          "col": 0,
+          "row": 3,
+          "x": 0,
+          "y": 480,
+          "width": 160,
+          "height": 160,
+          "expression": "angry"
+        },
+        {
+          "index": 25,
+          "col": 1,
+          "row": 3,
+          "x": 160,
+          "y": 480,
+          "width": 160,
+          "height": 160,
+          "expression": "angry"
+        },
+        {
+          "index": 26,
+          "col": 2,
+          "row": 3,
+          "x": 320,
+          "y": 480,
+          "width": 160,
+          "height": 160,
+          "expression": "angry"
+        },
+        {
+          "index": 27,
+          "col": 3,
+          "row": 3,
+          "x": 480,
+          "y": 480,
+          "width": 160,
+          "height": 160,
+          "expression": "angry"
+        },
+        {
+          "index": 28,
+          "col": 4,
+          "row": 3,
+          "x": 640,
+          "y": 480,
+          "width": 160,
+          "height": 160,
+          "expression": "focused"
+        },
+        {
+          "index": 29,
+          "col": 5,
+          "row": 3,
+          "x": 800,
+          "y": 480,
+          "width": 160,
+          "height": 160,
+          "expression": "normal"
+        }
+      ]
+    },
+    "heavy_attack": {
+      "row": 4,
+      "frames": 8,
+      "startFrame": 32,
+      "endFrame": 39,
+      "frameRate": 14,
+      "repeat": 0,
+      "label": "Attaque Lourde",
+      "cells": [
+        {
+          "index": 32,
+          "col": 0,
+          "row": 4,
+          "x": 0,
+          "y": 640,
+          "width": 160,
+          "height": 160,
+          "expression": "angry"
+        },
+        {
+          "index": 33,
+          "col": 1,
+          "row": 4,
+          "x": 160,
+          "y": 640,
+          "width": 160,
+          "height": 160,
+          "expression": "angry"
+        },
+        {
+          "index": 34,
+          "col": 2,
+          "row": 4,
+          "x": 320,
+          "y": 640,
+          "width": 160,
+          "height": 160,
+          "expression": "angry"
+        },
+        {
+          "index": 35,
+          "col": 3,
+          "row": 4,
+          "x": 480,
+          "y": 640,
+          "width": 160,
+          "height": 160,
+          "expression": "angry"
+        },
+        {
+          "index": 36,
+          "col": 4,
+          "row": 4,
+          "x": 640,
+          "y": 640,
+          "width": 160,
+          "height": 160,
+          "expression": "angry"
+        },
+        {
+          "index": 37,
+          "col": 5,
+          "row": 4,
+          "x": 800,
+          "y": 640,
+          "width": 160,
+          "height": 160,
+          "expression": "angry"
+        },
+        {
+          "index": 38,
+          "col": 6,
+          "row": 4,
+          "x": 960,
+          "y": 640,
+          "width": 160,
+          "height": 160,
+          "expression": "focused"
+        },
+        {
+          "index": 39,
+          "col": 7,
+          "row": 4,
+          "x": 1120,
+          "y": 640,
+          "width": 160,
+          "height": 160,
+          "expression": "normal"
+        }
+      ]
+    },
+    "hit": {
+      "row": 5,
+      "frames": 4,
+      "startFrame": 40,
+      "endFrame": 43,
+      "frameRate": 12,
+      "repeat": 0,
+      "label": "Coup Reçu",
+      "cells": [
+        {
+          "index": 40,
+          "col": 0,
+          "row": 5,
+          "x": 0,
+          "y": 800,
+          "width": 160,
+          "height": 160,
+          "expression": "hurt"
+        },
+        {
+          "index": 41,
+          "col": 1,
+          "row": 5,
+          "x": 160,
+          "y": 800,
+          "width": 160,
+          "height": 160,
+          "expression": "hurt"
+        },
+        {
+          "index": 42,
+          "col": 2,
+          "row": 5,
+          "x": 320,
+          "y": 800,
+          "width": 160,
+          "height": 160,
+          "expression": "hurt"
+        },
+        {
+          "index": 43,
+          "col": 3,
+          "row": 5,
+          "x": 480,
+          "y": 800,
+          "width": 160,
+          "height": 160,
+          "expression": "braced"
+        }
+      ]
+    },
+    "dodge": {
+      "row": 6,
+      "frames": 6,
+      "startFrame": 48,
+      "endFrame": 53,
+      "frameRate": 16,
+      "repeat": 0,
+      "label": "Esquive",
+      "cells": [
+        {
+          "index": 48,
+          "col": 0,
+          "row": 6,
+          "x": 0,
+          "y": 960,
+          "width": 160,
+          "height": 160,
+          "expression": "focused"
+        },
+        {
+          "index": 49,
+          "col": 1,
+          "row": 6,
+          "x": 160,
+          "y": 960,
+          "width": 160,
+          "height": 160,
+          "expression": "focused"
+        },
+        {
+          "index": 50,
+          "col": 2,
+          "row": 6,
+          "x": 320,
+          "y": 960,
+          "width": 160,
+          "height": 160,
+          "expression": "focused"
+        },
+        {
+          "index": 51,
+          "col": 3,
+          "row": 6,
+          "x": 480,
+          "y": 960,
+          "width": 160,
+          "height": 160,
+          "expression": "focused"
+        },
+        {
+          "index": 52,
+          "col": 4,
+          "row": 6,
+          "x": 640,
+          "y": 960,
+          "width": 160,
+          "height": 160,
+          "expression": "focused"
+        },
+        {
+          "index": 53,
+          "col": 5,
+          "row": 6,
+          "x": 800,
+          "y": 960,
+          "width": 160,
+          "height": 160,
+          "expression": "focused"
+        }
+      ]
+    },
+    "block": {
+      "row": 7,
+      "frames": 4,
+      "startFrame": 56,
+      "endFrame": 59,
+      "frameRate": 12,
+      "repeat": 0,
+      "label": "Blocage",
+      "cells": [
+        {
+          "index": 56,
+          "col": 0,
+          "row": 7,
+          "x": 0,
+          "y": 1120,
+          "width": 160,
+          "height": 160,
+          "expression": "braced"
+        },
+        {
+          "index": 57,
+          "col": 1,
+          "row": 7,
+          "x": 160,
+          "y": 1120,
+          "width": 160,
+          "height": 160,
+          "expression": "braced"
+        },
+        {
+          "index": 58,
+          "col": 2,
+          "row": 7,
+          "x": 320,
+          "y": 1120,
+          "width": 160,
+          "height": 160,
+          "expression": "braced"
+        },
+        {
+          "index": 59,
+          "col": 3,
+          "row": 7,
+          "x": 480,
+          "y": 1120,
+          "width": 160,
+          "height": 160,
+          "expression": "braced"
+        }
+      ]
+    },
+    "victory": {
+      "row": 8,
+      "frames": 6,
+      "startFrame": 64,
+      "endFrame": 69,
+      "frameRate": 10,
+      "repeat": -1,
+      "label": "Victoire",
+      "cells": [
+        {
+          "index": 64,
+          "col": 0,
+          "row": 8,
+          "x": 0,
+          "y": 1280,
+          "width": 160,
+          "height": 160,
+          "expression": "happy"
+        },
+        {
+          "index": 65,
+          "col": 1,
+          "row": 8,
+          "x": 160,
+          "y": 1280,
+          "width": 160,
+          "height": 160,
+          "expression": "happy"
+        },
+        {
+          "index": 66,
+          "col": 2,
+          "row": 8,
+          "x": 320,
+          "y": 1280,
+          "width": 160,
+          "height": 160,
+          "expression": "happy"
+        },
+        {
+          "index": 67,
+          "col": 3,
+          "row": 8,
+          "x": 480,
+          "y": 1280,
+          "width": 160,
+          "height": 160,
+          "expression": "happy"
+        },
+        {
+          "index": 68,
+          "col": 4,
+          "row": 8,
+          "x": 640,
+          "y": 1280,
+          "width": 160,
+          "height": 160,
+          "expression": "happy"
+        },
+        {
+          "index": 69,
+          "col": 5,
+          "row": 8,
+          "x": 800,
+          "y": 1280,
+          "width": 160,
+          "height": 160,
+          "expression": "happy"
+        }
+      ]
+    },
+    "defeat": {
+      "row": 9,
+      "frames": 6,
+      "startFrame": 72,
+      "endFrame": 77,
+      "frameRate": 8,
+      "repeat": 0,
+      "label": "Défaite",
+      "cells": [
+        {
+          "index": 72,
+          "col": 0,
+          "row": 9,
+          "x": 0,
+          "y": 1440,
+          "width": 160,
+          "height": 160,
+          "expression": "hurt"
+        },
+        {
+          "index": 73,
+          "col": 1,
+          "row": 9,
+          "x": 160,
+          "y": 1440,
+          "width": 160,
+          "height": 160,
+          "expression": "dizzy"
+        },
+        {
+          "index": 74,
+          "col": 2,
+          "row": 9,
+          "x": 320,
+          "y": 1440,
+          "width": 160,
+          "height": 160,
+          "expression": "dizzy"
+        },
+        {
+          "index": 75,
+          "col": 3,
+          "row": 9,
+          "x": 480,
+          "y": 1440,
+          "width": 160,
+          "height": 160,
+          "expression": "dizzy"
+        },
+        {
+          "index": 76,
+          "col": 4,
+          "row": 9,
+          "x": 640,
+          "y": 1440,
+          "width": 160,
+          "height": 160,
+          "expression": "dizzy"
+        },
+        {
+          "index": 77,
+          "col": 5,
+          "row": 9,
+          "x": 800,
+          "y": 1440,
+          "width": 160,
+          "height": 160,
+          "expression": "dizzy"
+        }
+      ]
+    },
+    "special": {
+      "row": 10,
+      "frames": 8,
+      "startFrame": 80,
+      "endFrame": 87,
+      "frameRate": 14,
+      "repeat": 0,
+      "label": "Spécial !",
+      "cells": [
+        {
+          "index": 80,
+          "col": 0,
+          "row": 10,
+          "x": 0,
+          "y": 1600,
+          "width": 160,
+          "height": 160,
+          "expression": "focused"
+        },
+        {
+          "index": 81,
+          "col": 1,
+          "row": 10,
+          "x": 160,
+          "y": 1600,
+          "width": 160,
+          "height": 160,
+          "expression": "angry"
+        },
+        {
+          "index": 82,
+          "col": 2,
+          "row": 10,
+          "x": 320,
+          "y": 1600,
+          "width": 160,
+          "height": 160,
+          "expression": "angry"
+        },
+        {
+          "index": 83,
+          "col": 3,
+          "row": 10,
+          "x": 480,
+          "y": 1600,
+          "width": 160,
+          "height": 160,
+          "expression": "angry"
+        },
+        {
+          "index": 84,
+          "col": 4,
+          "row": 10,
+          "x": 640,
+          "y": 1600,
+          "width": 160,
+          "height": 160,
+          "expression": "angry"
+        },
+        {
+          "index": 85,
+          "col": 5,
+          "row": 10,
+          "x": 800,
+          "y": 1600,
+          "width": 160,
+          "height": 160,
+          "expression": "angry"
+        },
+        {
+          "index": 86,
+          "col": 6,
+          "row": 10,
+          "x": 960,
+          "y": 1600,
+          "width": 160,
+          "height": 160,
+          "expression": "focused"
+        },
+        {
+          "index": 87,
+          "col": 7,
+          "row": 10,
+          "x": 1120,
+          "y": 1600,
+          "width": 160,
+          "height": 160,
+          "expression": "focused"
+        }
+      ]
+    }
+  }
+}
